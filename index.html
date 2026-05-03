@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>AI Mastery Assessment — High School</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#0d9488;--primary-light:#14b8a6;--primary-dark:#0f766e;
+  --accent:#f59e0b;--accent-light:#fbbf24;
+  --bg:#f0fdf4;--surface:#fff;--text:#1e293b;--text-light:#64748b;
+  --danger:#ef4444;--success:#22c55e;
+  --cat-foundations:#6366f1;--cat-prompt:#f59e0b;--cat-evaluation:#10b981;
+  --cat-ethics:#ec4899;--cat-collaboration:#8b5cf6;--cat-tool:#0ea5e9;
+  --radius:16px;--radius-sm:10px;
+  --shadow:0 4px 24px rgba(0,0,0,.08);
+  --shadow-lg:0 8px 40px rgba(0,0,0,.12);
+}
+html{font-size:16px;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
+
+/* Layout */
+.app{max-width:480px;margin:0 auto;padding:16px;min-height:100dvh;display:flex;flex-direction:column}
+.screen{display:none;flex-direction:column;gap:20px;animation:fadeUp .35s ease}
+.screen.active{display:flex}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes countUp{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes barGrow{from{width:0}to{width:var(--bar-w)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+/* Typography */
+h1{font-size:1.6rem;font-weight:800;line-height:1.2}
+h2{font-size:1.3rem;font-weight:700}
+h3{font-size:1.1rem;font-weight:600}
+p{line-height:1.5}
+.subtitle{color:var(--text-light);font-size:.9rem}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 28px;border:none;border-radius:var(--radius-sm);font-size:1rem;font-weight:600;cursor:pointer;transition:all .2s;-webkit-appearance:none}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-primary:disabled{background:#94a3b8;cursor:not-allowed;transform:none}
+.btn-outline{background:transparent;color:var(--primary);border:2px solid var(--primary)}
+.btn-outline:hover{background:rgba(13,148,136,.06)}
+.btn-full{width:100%}
+.btn-lg{padding:16px 32px;font-size:1.1rem;border-radius:var(--radius)}
+
+/* Cards */
+.card{background:var(--surface);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
+
+/* Inputs */
+.input-group{display:flex;flex-direction:column;gap:6px}
+.input-group label{font-weight:600;font-size:.9rem}
+.input-group input,.input-group select{padding:12px 16px;border:2px solid #e2e8f0;border-radius:var(--radius-sm);font-size:1rem;transition:border-color .2s;background:#fff}
+.input-group input:focus,.input-group select:focus{outline:none;border-color:var(--primary)}
+
+/* Progress Bar */
+.progress-wrap{display:flex;align-items:center;gap:12px}
+.progress-label{font-size:.8rem;font-weight:700;color:var(--text-light);white-space:nowrap}
+.progress-track{flex:1;height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary-light));border-radius:99px;transition:width .4s ease}
+
+/* Category Badge */
+.badge{display:inline-flex;align-items:center;padding:4px 12px;border-radius:99px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#fff}
+.badge-foundations{background:var(--cat-foundations)}
+.badge-prompt{background:var(--cat-prompt);color:var(--text)}
+.badge-evaluation{background:var(--cat-evaluation)}
+.badge-ethics{background:var(--cat-ethics)}
+.badge-collaboration{background:var(--cat-collaboration)}
+.badge-tool{background:var(--cat-tool)}
+
+/* Scenario Image */
+.scenario-img-wrap{border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);background:#e2e8f0;aspect-ratio:16/10;position:relative}
+.scenario-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+.scenario-img-wrap .img-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:.9rem;background:linear-gradient(135deg,#e2e8f0,#f1f5f9);background-size:200% 100%;animation:shimmer 2s infinite linear}
+
+/* Question */
+.question-text{font-size:1.05rem;font-weight:600;line-height:1.4}
+
+/* Choice Buttons */
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice-btn{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;border:2px solid #e2e8f0;border-radius:var(--radius-sm);background:#fff;font-size:.95rem;text-align:left;cursor:pointer;transition:all .2s;min-height:52px;-webkit-appearance:none;line-height:1.3}
+.choice-btn:active{transform:scale(.98)}
+.choice-btn .choice-letter{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;color:var(--text-light);transition:all .2s}
+.choice-btn .choice-text{flex:1;font-weight:500}
+.choice-btn.selected{border-color:var(--primary);background:rgba(13,148,136,.06)}
+.choice-btn.selected .choice-letter{background:var(--primary);color:#fff}
+
+/* Nav Buttons */
+.nav-row{display:flex;gap:12px;padding-top:8px}
+.nav-row .btn{flex:1}
+
+/* Chooser Screen */
+.chooser-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center}
+.hero-img{width:100%;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.hero-img img{width:100%;height:auto;display:block}
+.chooser-cards{display:flex;gap:16px;width:100%}
+.chooser-card{flex:1;padding:0;border-radius:var(--radius);border:2px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .2s;text-align:center;overflow:hidden}
+.chooser-card:hover{border-color:var(--primary);box-shadow:var(--shadow)}
+.chooser-card:active{transform:scale(.97)}
+.chooser-card img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
+.chooser-card .card-body{padding:12px 10px 14px}
+.chooser-card .icon{font-size:2.4rem;margin-bottom:8px}
+.chooser-card h3{margin-bottom:4px}
+.chooser-card p{font-size:.8rem;color:var(--text-light)}
+
+/* Results */
+.score-circle{width:160px;height:160px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto;animation:popIn .5s ease;box-shadow:0 8px 32px rgba(13,148,136,.3)}
+.score-circle .score-num{font-size:2.8rem;font-weight:900;color:#fff;line-height:1}
+.score-circle .score-of{font-size:.85rem;color:rgba(255,255,255,.8);font-weight:600}
+.level-label{text-align:center;font-size:1.2rem;font-weight:700;padding:4px 20px;border-radius:99px;display:inline-block;margin:0 auto}
+.level-1{background:#fee2e2;color:#dc2626}
+.level-2{background:#fef3c7;color:#d97706}
+.level-3{background:#d1fae5;color:#059669}
+.level-4{background:#c7d2fe;color:#4f46e5}
+
+/* Skill Bars */
+.skill-bars{display:flex;flex-direction:column;gap:14px}
+.skill-bar-item{display:flex;flex-direction:column;gap:4px}
+.skill-bar-header{display:flex;justify-content:space-between;align-items:center}
+.skill-bar-name{font-size:.85rem;font-weight:600}
+.skill-bar-score{font-size:.8rem;font-weight:700;color:var(--text-light)}
+.skill-bar-track{height:10px;background:#e2e8f0;border-radius:99px;overflow:hidden}
+.skill-bar-fill{height:100%;border-radius:99px;animation:barGrow .8s ease forwards;width:0}
+
+/* Expandable Review */
+.review-section{border-top:1px solid #e2e8f0;padding-top:16px}
+.review-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:.95rem;color:var(--primary);border:none;background:none;padding:8px 0;width:100%}
+.review-toggle .arrow{transition:transform .3s;font-size:.8rem}
+.review-toggle.open .arrow{transform:rotate(90deg)}
+.review-items{display:none;flex-direction:column;gap:12px;padding-top:12px}
+.review-items.open{display:flex}
+.review-item{padding:12px;border-radius:var(--radius-sm);background:#f8fafc;border-left:4px solid var(--primary)}
+.review-item .ri-q{font-weight:600;font-size:.85rem;margin-bottom:4px}
+.review-item .ri-your{font-size:.8rem;color:var(--text-light)}
+.review-item .ri-best{font-size:.8rem;color:var(--success);font-weight:600}
+
+/* Likert */
+.likert-row{display:flex;gap:8px;justify-content:center}
+.likert-btn{width:48px;height:48px;border-radius:50%;border:2px solid #e2e8f0;background:#fff;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.likert-btn.selected{border-color:var(--primary);background:var(--primary);color:#fff}
+.likert-labels{display:flex;justify-content:space-between;font-size:.7rem;color:var(--text-light);padding:0 4px}
+
+/* Textarea */
+textarea{width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:var(--radius-sm);font-size:1rem;font-family:inherit;resize:vertical;min-height:80px;transition:border-color .2s}
+textarea:focus{outline:none;border-color:var(--primary)}
+
+/* Pre-test done */
+.done-icon{font-size:4rem;text-align:center;animation:popIn .5s ease}
+.done-text{text-align:center;font-size:1.1rem;line-height:1.5}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1e293b;color:#fff;padding:12px 24px;border-radius:var(--radius-sm);font-size:.9rem;font-weight:600;opacity:0;transition:all .3s;z-index:99;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Analysis */
+.analysis-card{background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:1px solid #bbf7d0;border-radius:var(--radius);padding:20px}
+.analysis-card h3{margin-bottom:10px;color:var(--primary-dark)}
+.analysis-text{font-size:.9rem;line-height:1.65;color:var(--text)}
+.analysis-text strong{color:var(--primary-dark)}
+.strength-tag{display:inline-block;padding:3px 10px;border-radius:99px;font-size:.75rem;font-weight:600;margin:2px 4px 2px 0}
+.strength-tag.high{background:#d1fae5;color:#059669}
+.strength-tag.mid{background:#fef3c7;color:#d97706}
+.strength-tag.low{background:#fee2e2;color:#dc2626}
+
+/* Footer */
+.app-footer{margin-top:auto;padding:16px 0 8px;text-align:center;font-size:.75rem;color:var(--text-light);border-top:1px solid #e2e8f0}
+.app-footer a{color:var(--primary);text-decoration:none;font-weight:600}
+.app-footer a:hover{text-decoration:underline}
+
+/* Responsive */
+@media(min-width:600px){
+  .app{padding:24px}
+  .scenario-img-wrap{aspect-ratio:16/9}
+}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- SCREEN: Chooser -->
+  <div class="screen active" id="screen-chooser">
+    <div class="chooser-wrap">
+      <div class="hero-img">
+        <img src="images/landing-hero.png" alt="AI Mastery Assessment">
+      </div>
+      <div>
+        <h1>AI Mastery<br>Assessment</h1>
+        <p class="subtitle" style="margin-top:8px">6 real-world scenarios. One tap each.</p>
+        <p class="subtitle" style="margin-top:4px">High School AI Workshop Edition</p>
+      </div>
+      <div class="chooser-cards">
+        <div class="chooser-card" onclick="chooseType('pre')">
+          <img src="images/landing-pretest.png" alt="Pre-Test">
+          <div class="card-body">
+            <h3>Pre-Test</h3>
+            <p>Before your session</p>
+          </div>
+        </div>
+        <div class="chooser-card" onclick="chooseType('post')">
+          <img src="images/landing-posttest.png" alt="Post-Test">
+          <div class="card-body">
+            <h3>Post-Test</h3>
+            <p>After your session</p>
+          </div>
+        </div>
+      </div>
+      <a href="https://lainow.com" target="_blank" class="btn btn-outline" style="font-size:.85rem;padding:10px 20px">Learn more at lainow.com</a>
+    </div>
+  </div>
+
+  <!-- SCREEN: Welcome -->
+  <div class="screen" id="screen-welcome">
+    <div style="text-align:center;padding-top:16px">
+      <h1 id="welcome-title">Before We Start</h1>
+      <p class="subtitle" style="margin-top:6px" id="welcome-sub">6 quick questions about using AI (~3 min)</p>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:16px">
+      <div class="input-group" id="bg-group">
+        <label for="inp-background">Coding Background</label>
+        <select id="inp-background">
+          <option value="">Select one...</option>
+          <option value="none">No experience</option>
+          <option value="beginner">Beginner (some HTML/CSS)</option>
+          <option value="intermediate">Intermediate (built small projects)</option>
+          <option value="advanced">Advanced (professional dev)</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" id="btn-start" onclick="startQuiz()">Start Assessment</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: Question -->
+  <div class="screen" id="screen-question">
+    <div class="progress-wrap">
+      <span class="progress-label" id="q-counter">Q1 of 10</span>
+      <div class="progress-track"><div class="progress-fill" id="q-progress" style="width:10%"></div></div>
+    </div>
+    <div id="q-badge"></div>
+    <div class="scenario-img-wrap">
+      <div class="img-placeholder" id="q-img-placeholder">Loading...</div>
+      <img id="q-img" src="" alt="Scenario illustration" loading="lazy" onload="this.previousElementSibling.style.display='none'" onerror="this.previousElementSibling.textContent='Image not found'">
+    </div>
+    <p class="question-text" id="q-text"></p>
+    <div class="choices" id="q-choices"></div>
+    <div class="nav-row">
+      <button class="btn btn-outline" id="btn-back" onclick="goBack()">Back</button>
+      <button class="btn btn-primary" id="btn-next" onclick="goNext()" disabled>Next</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: Pre-test done -->
+  <div class="screen" id="screen-pre-done">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:20px;padding-top:24px">
+      <div class="done-icon">&#9989;</div>
+      <h1 style="text-align:center">You're All Set!</h1>
+      <p class="done-text">Thank you for completing the pre-assessment.<br><strong>Your session will begin now.</strong></p>
+      <div class="analysis-card" id="pre-analysis" style="width:100%"></div>
+      <p class="subtitle">Your responses have been recorded.</p>
+    </div>
+  </div>
+
+  <!-- SCREEN: Post-test results -->
+  <div class="screen" id="screen-results">
+    <div style="text-align:center;padding-top:8px">
+      <p class="subtitle">Your AI Mastery Score</p>
+    </div>
+    <div class="score-circle">
+      <span class="score-num" id="res-score">0</span>
+      <span class="score-of">out of 24</span>
+    </div>
+    <div style="text-align:center">
+      <span class="level-label" id="res-level"></span>
+    </div>
+
+    <!-- Analysis -->
+    <div class="analysis-card" id="res-analysis"></div>
+
+    <div class="card">
+      <h3 style="margin-bottom:14px">Skill Breakdown</h3>
+      <div class="skill-bars" id="res-skills"></div>
+    </div>
+
+    <!-- Review -->
+    <div class="card review-section">
+      <button class="review-toggle" id="review-toggle" onclick="toggleReview()">
+        <span class="arrow">&#9654;</span> Review Your Answers
+      </button>
+      <div class="review-items" id="review-items"></div>
+    </div>
+
+    <!-- Likert + Open -->
+    <div class="card" style="display:flex;flex-direction:column;gap:16px">
+      <h3>Two More Quick Questions</h3>
+      <div>
+        <p style="font-size:.9rem;font-weight:600;margin-bottom:8px">How confident are you using AI independently now?</p>
+        <div class="likert-row" id="likert-row"></div>
+        <div class="likert-labels"><span>Not at all</span><span>Very confident</span></div>
+      </div>
+      <div class="input-group">
+        <label for="inp-open">What was the most useful thing you learned today?</label>
+        <textarea id="inp-open" placeholder="Type your answer..."></textarea>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" id="btn-submit" onclick="submitResults()">Submit</button>
+    </div>
+  </div>
+
+  <footer class="app-footer">&copy; 2025 LearnAI Team &middot; <a href="https://lainow.com" target="_blank">lainow.com</a></footer>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── Data ───────────────────────────────────────────────────────────────
+const SCENARIOS = [
+  // ── PRE-TEST ──────────────────────────────────────────────────────────
+  // Correct positions: C, D, A, B, C, A  (distributed evenly)
+  {
+    id:'s01', cat:'foundations', catLabel:'AI Foundations', badge:'badge-foundations',
+    img:'images/scenarios/s01-foundations.png',
+    q:'When an AI chatbot says "I think" or "I believe," what\'s actually happening?',
+    choices:[
+      {letter:'A', text:'It\'s flagging uncertainty \u2014 a built-in signal that you should double-check this specific response', score:3},
+      {letter:'B', text:'It\'s sharing a genuine perspective shaped by analyzing billions of real-world text examples', score:1},
+      {letter:'C', text:'It\'s producing text that mimics human phrasing \u2014 no actual beliefs or opinions exist behind it', score:4},
+      {letter:'D', text:'Developers designed these phrases to make AI conversations feel more natural and relatable', score:2}
+    ]
+  },
+  {
+    id:'s02', cat:'prompt', catLabel:'Prompt Engineering', badge:'badge-prompt',
+    img:'images/scenarios/s02-prompt.png',
+    q:'You ask AI to "write something about climate change" and get a vague essay. What\'s the best fix?',
+    choices:[
+      {letter:'A', text:'Regenerate several times \u2014 AI responses vary naturally, so a better version will likely appear', score:1},
+      {letter:'B', text:'Use a more advanced model \u2014 premium AI tools handle nuanced and complex topics with more depth', score:2},
+      {letter:'C', text:'Add quality instructions like "make it compelling, well-structured, and written in a professional tone"', score:1},
+      {letter:'D', text:'Specify audience and format: "200-word persuasive paragraph for college students, campus solar panels, 2 stats"', score:4}
+    ]
+  },
+  {
+    id:'s03', cat:'evaluation', catLabel:'Critical Evaluation', badge:'badge-evaluation',
+    img:'images/scenarios/s03-evaluation.png',
+    q:'AI writes a research summary with 5 citations. How should you treat them?',
+    choices:[
+      {letter:'A', text:'Look up each one individually \u2014 AI routinely generates complete but entirely fabricated academic references', score:4},
+      {letter:'B', text:'Verify a random sample of two or three \u2014 that\'s usually enough to gauge if the rest are trustworthy', score:2},
+      {letter:'C', text:'Citations with specific details like volume numbers, DOIs, and page ranges are usually from real papers', score:2},
+      {letter:'D', text:'If the author names and journal titles match real researchers in the field, they\'re most likely accurate', score:1}
+    ]
+  },
+  {
+    id:'s04', cat:'ethics', catLabel:'Ethics & Safety', badge:'badge-ethics',
+    img:'images/scenarios/s04-ethics.png',
+    q:'Your company\'s free ChatGPT account is used to summarize customer complaint emails. What\'s the risk?',
+    choices:[
+      {letter:'A', text:'The summaries could systematically misrepresent certain demographics or complaint types due to AI bias', score:3},
+      {letter:'B', text:'Customer names, contact details, and personal information in those messages may enter AI training data', score:4},
+      {letter:'C', text:'Staff may stop reading actual complaints carefully and miss important nuances the AI doesn\'t capture', score:2},
+      {letter:'D', text:'Minimal real risk \u2014 major AI providers like OpenAI process all user data through encrypted secure systems', score:1}
+    ]
+  },
+  {
+    id:'s05', cat:'collaboration', catLabel:'Human-AI Collaboration', badge:'badge-collaboration',
+    img:'images/scenarios/s05-collaboration.png',
+    q:'You\'re using AI to help write a project proposal. What\'s the best workflow?',
+    choices:[
+      {letter:'A', text:'Give AI a thorough brief about the project and let it create the structure and initial content', score:1},
+      {letter:'B', text:'Take turns \u2014 you write the key arguments and strategic sections, AI fills in supporting details', score:3},
+      {letter:'C', text:'Draft your own outline and core arguments first, then use AI to strengthen language and find gaps', score:4},
+      {letter:'D', text:'Have AI generate a complete first draft from your notes, then carefully review and edit for accuracy', score:2}
+    ]
+  },
+  {
+    id:'s06', cat:'tool', catLabel:'Tool Selection', badge:'badge-tool',
+    img:'images/scenarios/s06-tool.png',
+    q:'You need to extract specific data from a 50-page PDF report. Best approach?',
+    choices:[
+      {letter:'A', text:'Use a specialized PDF AI tool that understands document structure, tables, and page layouts', score:4},
+      {letter:'B', text:'Copy and paste the most relevant sections you find into a general-purpose AI chat window', score:3},
+      {letter:'C', text:'Upload the entire document to ChatGPT and ask it to locate and extract the data you need', score:2},
+      {letter:'D', text:'Ask AI to find the report online so it can access and analyze the original source material', score:1}
+    ]
+  },
+  // ── POST-TEST ─────────────────────────────────────────────────────────
+  // Correct positions: D, C, B, D, A, B  (distributed evenly)
+  {
+    id:'s07', cat:'foundations', catLabel:'AI Foundations', badge:'badge-foundations',
+    img:'images/scenarios/s07-foundations.png',
+    q:'A news headline says "AI scores 90% on a medical exam." What should you think first?',
+    choices:[
+      {letter:'A', text:'This shows AI can already provide meaningful support for clinical diagnosis and treatment planning', score:1},
+      {letter:'B', text:'AI is advancing so rapidly it will likely match most medical professionals within a few years', score:1},
+      {letter:'C', text:'I\'d need to know which exam, what question format, and how the evaluation was actually conducted', score:3},
+      {letter:'D', text:'Standardized test scores don\'t capture the clinical judgment, context, and reasoning doctors use daily', score:4}
+    ]
+  },
+  {
+    id:'s08', cat:'prompt', catLabel:'Prompt Engineering', badge:'badge-prompt',
+    img:'images/scenarios/s08-prompt.png',
+    q:'An AI keeps giving you overly long responses. What\'s the most effective fix?',
+    choices:[
+      {letter:'A', text:'Tell it "shorter please" or "be more concise" \u2014 clear direct feedback usually adjusts the output', score:2},
+      {letter:'B', text:'Keep regenerating until you get a shorter version \u2014 AI responses naturally vary in length each time', score:1},
+      {letter:'C', text:'Set a precise format constraint: "Answer in exactly 2 bullet points, maximum 15 words each"', score:4},
+      {letter:'D', text:'Start a new conversation \u2014 the current thread has likely locked into a verbose response pattern', score:2}
+    ]
+  },
+  {
+    id:'s09', cat:'evaluation', catLabel:'Critical Evaluation', badge:'badge-evaluation',
+    img:'images/scenarios/s09-evaluation.png',
+    q:'You ask AI the same question three times and get the same answer each time. This means:',
+    choices:[
+      {letter:'A', text:'High reliability \u2014 consistent results across multiple independent attempts confirm the answer is sound', score:1},
+      {letter:'B', text:'Very little \u2014 the same model draws on the same data and will reproduce identical errors each time', score:4},
+      {letter:'C', text:'The AI has high confidence here, which generally correlates with more reliable and accurate responses', score:2},
+      {letter:'D', text:'Three matching answers give much stronger evidence of accuracy than a single unverified response does', score:1}
+    ]
+  },
+  {
+    id:'s10', cat:'ethics', catLabel:'Ethics & Safety', badge:'badge-ethics',
+    img:'images/scenarios/s10-ethics.png',
+    q:'An AI hiring tool rejects 80% of female applicants. The company says "the AI is just following the data." What\'s the right response?',
+    choices:[
+      {letter:'A', text:'The data is surfacing real qualification differences that human reviewers may have been consistently overlooking', score:1},
+      {letter:'B', text:'The algorithm needs rebalancing \u2014 adjust the model weights until it produces more equitable acceptance rates', score:2},
+      {letter:'C', text:'AI is fundamentally unsuited for any high-stakes decisions like hiring that directly affect people\'s livelihoods', score:3},
+      {letter:'D', text:'Historical hiring data has past discrimination baked in \u2014 the AI is amplifying old biases, not finding truth', score:4}
+    ]
+  },
+  {
+    id:'s11', cat:'collaboration', catLabel:'Human-AI Collaboration', badge:'badge-collaboration',
+    img:'images/scenarios/s11-collaboration.png',
+    q:'When is AI LEAST helpful for learning a new skill?',
+    choices:[
+      {letter:'A', text:'When you have it complete tasks for you, then review the finished output to learn from its approach', score:4},
+      {letter:'B', text:'When you ask it to break down complex concepts into simple, step-by-step explanations you can follow', score:2},
+      {letter:'C', text:'When you submit your own work and ask it to identify your specific mistakes with detailed corrections', score:1},
+      {letter:'D', text:'When you ask it to create custom practice exercises and problems matched to your current skill level', score:1}
+    ]
+  },
+  {
+    id:'s12', cat:'tool', catLabel:'Tool Selection', badge:'badge-tool',
+    img:'images/scenarios/s12-tool.png',
+    q:'When should you use a local/open-source AI model instead of ChatGPT?',
+    choices:[
+      {letter:'A', text:'When you need the highest quality output \u2014 open-source models now match or exceed commercial AI tools', score:1},
+      {letter:'B', text:'When you\'re working with sensitive data that must not be transmitted to any third-party cloud servers', score:4},
+      {letter:'C', text:'When you need the fastest possible response times \u2014 local processing eliminates all network latency', score:2},
+      {letter:'D', text:'There\'s rarely a good reason \u2014 commercial tools consistently outperform open-source in nearly every task', score:1}
+    ]
+  }
+];
+
+const CATEGORIES = [
+  {key:'foundations',    label:'AI Foundations',         color:'var(--cat-foundations)',    ids:['s01','s07']},
+  {key:'prompt',        label:'Prompt Engineering',     color:'var(--cat-prompt)',         ids:['s02','s08']},
+  {key:'evaluation',    label:'Critical Evaluation',    color:'var(--cat-evaluation)',     ids:['s03','s09']},
+  {key:'ethics',        label:'Ethics & Safety',        color:'var(--cat-ethics)',         ids:['s04','s10']},
+  {key:'collaboration', label:'Human-AI Collaboration', color:'var(--cat-collaboration)',  ids:['s05','s11']},
+  {key:'tool',          label:'Tool Selection',         color:'var(--cat-tool)',           ids:['s06','s12']}
+];
+
+const LEVELS = [
+  {min:6,max:11,  label:'Passive Consumer',   lvl:1,cls:'level-1'},
+  {min:12,max:15, label:'Developing User',    lvl:2,cls:'level-2'},
+  {min:16,max:20, label:'Proficient Creator',  lvl:3,cls:'level-3'},
+  {min:21,max:24, label:'Process Partner',     lvl:4,cls:'level-4'}
+];
+
+// ─── Scenario Sets ──────────────────────────────────────────────────────
+const PRE_IDS  = ['s01','s02','s03','s04','s05','s06']; // one per category
+const POST_IDS = ['s07','s08','s09','s10','s11','s12']; // parallel form
+
+// ─── State ──────────────────────────────────────────────────────────────
+let testType = null; // 'pre' or 'post'
+let activeScenarios = []; // 5 scenarios for current test
+let currentQ = 0;
+let answers = [];
+let shuffledChoices = [];
+let likertVal = null;
+let participantId = '';
+
+// ─── URL params ─────────────────────────────────────────────────────────
+(function checkParams(){
+  const p = new URLSearchParams(location.search);
+  const t = p.get('type');
+  if(t === 'pre' || t === 'post'){
+    chooseType(t);
+  }
+})();
+
+// ─── Shuffle ────────────────────────────────────────────────────────────
+function shuffle(arr){
+  const a = [...arr];
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function initShuffles(){
+  shuffledChoices = activeScenarios.map(s => shuffle(s.choices));
+}
+
+// ─── Screen switching ───────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
+function chooseType(type){
+  testType = type;
+  const ids = type === 'pre' ? PRE_IDS : POST_IDS;
+  activeScenarios = ids.map(id => SCENARIOS.find(s => s.id === id));
+  showScreen('screen-welcome');
+  const title = document.getElementById('welcome-title');
+  const sub = document.getElementById('welcome-sub');
+  const bgGroup = document.getElementById('bg-group');
+  if(type === 'pre'){
+    title.textContent = 'Pre-Session Assessment';
+    sub.textContent = '6 quick questions about using AI';
+    bgGroup.style.display = '';
+  } else {
+    title.textContent = 'Post-Session Assessment';
+    sub.textContent = 'Let\'s see how far you\'ve come!';
+    bgGroup.style.display = 'none';
+  }
+}
+
+function startQuiz(){
+  if(testType === 'pre'){
+    const bg = document.getElementById('inp-background').value;
+    if(!bg){
+      showToast('Please select your coding background');
+      return;
+    }
+  }
+  // Auto-generate participant ID from timestamp
+  participantId = 'P' + Date.now();
+  initShuffles();
+  currentQ = 0;
+  answers = new Array(6).fill(null);
+  renderQuestion();
+  showScreen('screen-question');
+}
+
+// ─── Question rendering ─────────────────────────────────────────────────
+function renderQuestion(){
+  const s = activeScenarios[currentQ];
+  const sc = shuffledChoices[currentQ];
+  const total = activeScenarios.length;
+
+  // Counter + progress
+  document.getElementById('q-counter').textContent = `Q${currentQ+1} of ${total}`;
+  document.getElementById('q-progress').style.width = `${((currentQ+1)/total)*100}%`;
+
+  // Badge
+  document.getElementById('q-badge').innerHTML = `<span class="badge ${s.badge}">${s.catLabel}</span>`;
+
+  // Image
+  const img = document.getElementById('q-img');
+  const ph = document.getElementById('q-img-placeholder');
+  ph.style.display = 'flex';
+  ph.textContent = 'Loading...';
+  img.src = s.img;
+
+  // Question text
+  document.getElementById('q-text').textContent = s.q;
+
+  // Choices
+  const cDiv = document.getElementById('q-choices');
+  const letters = ['A','B','C','D'];
+  cDiv.innerHTML = sc.map((c, i) => `
+    <button class="choice-btn${answers[currentQ] && answers[currentQ].choiceIdx === i ? ' selected' : ''}"
+            onclick="selectChoice(${i})" type="button">
+      <span class="choice-letter">${letters[i]}</span>
+      <span class="choice-text">${c.text}</span>
+    </button>
+  `).join('');
+
+  // Nav
+  document.getElementById('btn-back').style.visibility = currentQ === 0 ? 'hidden' : 'visible';
+  const nextBtn = document.getElementById('btn-next');
+  nextBtn.disabled = !answers[currentQ];
+  nextBtn.textContent = currentQ === total - 1 ? 'Finish' : 'Next';
+}
+
+function selectChoice(idx){
+  const sc = shuffledChoices[currentQ];
+  const chosen = sc[idx];
+  answers[currentQ] = { choiceIdx: idx, origLetter: chosen.letter, score: chosen.score };
+
+  // Update UI
+  document.querySelectorAll('.choice-btn').forEach((btn, i) => {
+    btn.classList.toggle('selected', i === idx);
+  });
+  document.getElementById('btn-next').disabled = false;
+}
+
+function goBack(){
+  if(currentQ > 0){
+    currentQ--;
+    renderQuestion();
+    window.scrollTo({top:0, behavior:'instant'});
+  }
+}
+
+function goNext(){
+  if(!answers[currentQ]) return;
+  if(currentQ < activeScenarios.length - 1){
+    currentQ++;
+    renderQuestion();
+    window.scrollTo({top:0, behavior:'instant'});
+  } else {
+    finishQuiz();
+  }
+}
+
+// ─── Analysis Generator ─────────────────────────────────────────────────
+const CAT_INSIGHTS = {
+  foundations: {
+    4: 'You understand how AI actually works — it generates patterns, not opinions. This prevents over-trusting its output.',
+    3: 'You sense AI has limitations, but may still attribute human-like qualities to it. Understanding the mechanism helps.',
+    2: 'You may be influenced by AI\'s human-sounding language into thinking it has intent or judgment.',
+    1: 'AI doesn\'t think, believe, or understand — it predicts the next likely word. Recognizing this is the foundation of AI literacy.'
+  },
+  prompt: {
+    4: 'You write specific, constrained prompts with clear details — this is the key skill that separates effective AI users.',
+    3: 'Your prompts point in the right direction but lack the specific constraints AI needs to deliver great results.',
+    2: 'You tend to rely on model changes or retries instead of improving your prompt with specifics.',
+    1: 'Vague prompts get vague results. Adding audience, format, length, and concrete details transforms AI output.'
+  },
+  evaluation: {
+    4: 'You treat AI output with healthy skepticism — verifying claims and citations rather than trusting surface-level confidence.',
+    3: 'You have good instincts to question AI output, but may rely on shortcuts rather than thorough verification.',
+    2: 'You may trust AI output based on how it looks or sounds rather than independently checking the facts.',
+    1: 'AI can generate confident, detailed, and completely fabricated information. Always verify against primary sources.'
+  },
+  ethics: {
+    4: 'You recognize the real risks of AI — especially around data privacy, bias, and the amplification of historical patterns.',
+    3: 'You\'re aware AI has ethical dimensions but may focus on surface issues rather than deeper systemic risks.',
+    2: 'You see some AI risks but may miss the most critical ones around data privacy and algorithmic bias.',
+    1: 'AI poses real risks around privacy and bias that aren\'t always obvious. Understanding these is essential for responsible use.'
+  },
+  collaboration: {
+    4: 'You use AI as an amplifier for your own thinking — you lead, AI assists. This is the most effective partnership model.',
+    3: 'You\'re finding a balance between doing the work yourself and leveraging AI, but can optimize the workflow further.',
+    2: 'You may lean too heavily on AI for the creative or structural work. The best results come from leading with your own thinking.',
+    1: 'Delegating everything to AI means you lose the learning and strategic thinking. Start with your own ideas, then use AI to refine.'
+  },
+  tool: {
+    4: 'You can match the right AI tool to the situation, considering privacy, structure, and the nature of the task.',
+    3: 'You\'re on the right track with tool selection, but might default to general tools when specialized ones would be better.',
+    2: 'You tend to use one tool for everything rather than choosing the best fit for each specific task.',
+    1: 'Different AI tools have different strengths. Choosing the right one for your task makes a huge difference in results.'
+  }
+};
+
+function generateAnalysis(){
+  const total = answers.reduce((s, a) => s + a.score, 0);
+  const level = LEVELS.find(l => total >= l.min && total <= l.max) || LEVELS[0];
+
+  // Per-category scores
+  const catScores = {};
+  CATEGORIES.forEach(cat => {
+    catScores[cat.key] = { score: 0, label: cat.label };
+    activeScenarios.forEach((sc, i) => {
+      if (sc.cat === cat.key) catScores[cat.key].score = answers[i]?.score || 0;
+    });
+  });
+
+  // Strengths and weaknesses
+  const cats = Object.keys(catScores);
+  const strengths = cats.filter(k => catScores[k].score >= 4);
+  const developing = cats.filter(k => catScores[k].score === 3);
+  const weaknesses = cats.filter(k => catScores[k].score <= 2);
+
+  // Build narrative
+  let parts = [];
+
+  // Overall
+  parts.push(`You scored <strong>${total}/24</strong>, placing you at <strong>${level.label}</strong> level.`);
+
+  if (level.lvl === 4) {
+    parts.push('You demonstrate strong AI mastery across all areas — you approach AI as a process partner, not a magic tool.');
+  } else if (level.lvl === 3) {
+    parts.push('You have a solid foundation in using AI effectively, with room to sharpen a few specific skills.');
+  } else if (level.lvl === 2) {
+    parts.push('You\'re developing awareness of good AI practices, but some key habits need strengthening.');
+  } else {
+    parts.push('You\'re at the beginning of your AI journey — the good news is that these skills are very learnable.');
+  }
+
+  // Strengths
+  if (strengths.length > 0) {
+    const tags = strengths.map(k => `<span class="strength-tag high">${catScores[k].label}</span>`).join('');
+    parts.push(`<strong>Strengths:</strong> ${tags}`);
+    strengths.forEach(k => parts.push(CAT_INSIGHTS[k][catScores[k].score]));
+  }
+
+  // Developing
+  if (developing.length > 0) {
+    const tags = developing.map(k => `<span class="strength-tag mid">${catScores[k].label}</span>`).join('');
+    parts.push(`<strong>Developing:</strong> ${tags}`);
+    developing.forEach(k => parts.push(CAT_INSIGHTS[k][catScores[k].score]));
+  }
+
+  // Weaknesses
+  if (weaknesses.length > 0) {
+    const tags = weaknesses.map(k => `<span class="strength-tag low">${catScores[k].label}</span>`).join('');
+    parts.push(`<strong>Areas to improve:</strong> ${tags}`);
+    weaknesses.forEach(k => parts.push(CAT_INSIGHTS[k][catScores[k].score]));
+  }
+
+  const html = `<h3>Your Analysis</h3><div class="analysis-text">${parts.map(p => `<p style="margin-bottom:8px">${p}</p>`).join('')}</div>`;
+
+  // Plain text version for Google Sheets
+  const plain = parts.map(p => p.replace(/<[^>]+>/g, '')).join(' ');
+
+  return { html, plain };
+}
+
+// ─── Finish ─────────────────────────────────────────────────────────────
+function finishQuiz(){
+  const analysis = generateAnalysis();
+  window._lastAnalysis = analysis.plain; // store for submission
+
+  if(testType === 'pre'){
+    document.getElementById('pre-analysis').innerHTML = analysis.html;
+    submitData(false);
+    showScreen('screen-pre-done');
+  } else {
+    buildResults();
+    document.getElementById('res-analysis').innerHTML = analysis.html;
+    showScreen('screen-results');
+  }
+}
+
+function buildResults(){
+  const total = answers.reduce((s, a) => s + a.score, 0);
+
+  // Animated score
+  const scoreEl = document.getElementById('res-score');
+  animateCount(scoreEl, total, 800);
+
+  // Level (scaled to 6 questions: 6-24 range)
+  const level = LEVELS.find(l => total >= l.min && total <= l.max) || LEVELS[0];
+  const levelEl = document.getElementById('res-level');
+  levelEl.textContent = `Level ${level.lvl}: ${level.label}`;
+  levelEl.className = 'level-label ' + level.cls;
+
+  // Skill bars (1 scenario per category = max 4 per category)
+  const skillsEl = document.getElementById('res-skills');
+  skillsEl.innerHTML = CATEGORIES.map(cat => {
+    const catScore = activeScenarios.reduce((s, sc, i) => {
+      return sc.cat === cat.key ? s + (answers[i]?.score || 0) : s;
+    }, 0);
+    const pct = (catScore / 4) * 100;
+    return `
+      <div class="skill-bar-item">
+        <div class="skill-bar-header">
+          <span class="skill-bar-name">${cat.label}</span>
+          <span class="skill-bar-score">${catScore}/4</span>
+        </div>
+        <div class="skill-bar-track">
+          <div class="skill-bar-fill" style="--bar-w:${pct}%;background:${cat.color}"></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Trigger bar animations
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.skill-bar-fill').forEach(el => {
+      el.style.width = el.style.getPropertyValue('--bar-w');
+    });
+  });
+
+  // Review items
+  const revEl = document.getElementById('review-items');
+  revEl.innerHTML = activeScenarios.map((s, i) => {
+    const ans = answers[i];
+    const best = s.choices.find(c => c.score === 4);
+    const yours = s.choices.find(c => c.letter === ans.origLetter);
+    return `
+      <div class="review-item">
+        <div class="ri-q">Q${i+1}: ${s.q}</div>
+        <div class="ri-your">Your answer: ${ans.origLetter}. ${yours.text} (${ans.score}/4)</div>
+        ${ans.score < 4 ? `<div class="ri-best">Best answer: ${best.letter}. ${best.text}</div>` : `<div class="ri-best">Correct!</div>`}
+      </div>`;
+  }).join('');
+
+  // Likert
+  const likertRow = document.getElementById('likert-row');
+  likertRow.innerHTML = [1,2,3,4,5].map(n =>
+    `<button class="likert-btn" onclick="selectLikert(${n})" type="button">${n}</button>`
+  ).join('');
+  likertVal = null;
+}
+
+function animateCount(el, target, duration){
+  const start = performance.now();
+  function tick(now){
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.round(ease * target);
+    if(t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function selectLikert(n){
+  likertVal = n;
+  document.querySelectorAll('.likert-btn').forEach((btn, i) => {
+    btn.classList.toggle('selected', i === n - 1);
+  });
+}
+
+function toggleReview(){
+  const toggle = document.getElementById('review-toggle');
+  const items = document.getElementById('review-items');
+  toggle.classList.toggle('open');
+  items.classList.toggle('open');
+}
+
+// ─── Submit ─────────────────────────────────────────────────────────────
+function submitResults(){
+  if(!likertVal){
+    showToast('Please rate your confidence (1-5)');
+    return;
+  }
+  submitData(true);
+  document.getElementById('btn-submit').textContent = 'Submitted!';
+  document.getElementById('btn-submit').disabled = true;
+  showToast('Results submitted successfully!');
+}
+
+function submitData(includePost){
+  const bg = document.getElementById('inp-background').value;
+  const total = answers.reduce((s, a) => s + a.score, 0);
+
+  const catScores = {};
+  CATEGORIES.forEach(cat => {
+    catScores[cat.key] = activeScenarios.reduce((s, sc, i) => {
+      return sc.cat === cat.key ? s + (answers[i]?.score || 0) : s;
+    }, 0);
+  });
+
+  const payload = {
+    participant_id: participantId,
+    test_type: testType,
+    coding_background: testType === 'pre' ? bg : '',
+    timestamp: new Date().toISOString(),
+    total_score: total,
+    cat_foundations: catScores.foundations,
+    cat_prompt: catScores.prompt,
+    cat_evaluation: catScores.evaluation,
+    cat_ethics: catScores.ethics,
+    cat_collaboration: catScores.collaboration,
+    cat_tool: catScores.tool
+  };
+
+  // Per-question scores and choices (use scenario IDs)
+  activeScenarios.forEach((sc, i) => {
+    payload[`${sc.id}_score`] = answers[i].score;
+    payload[`${sc.id}_choice`] = answers[i].origLetter.toLowerCase();
+  });
+
+  // Analysis text
+  payload.analysis = window._lastAnalysis || '';
+
+  if(includePost){
+    payload.likert_confidence = likertVal;
+    payload.open_response = document.getElementById('inp-open').value.trim();
+  }
+
+  // Save to localStorage as backup
+  const backupKey = `ai_assess_${testType}_${participantId}`;
+  try { localStorage.setItem(backupKey, JSON.stringify(payload)); } catch(e){}
+
+  // POST to Google Apps Script
+  // TODO: Replace with your new HS Google Apps Script URL
+  const SCRIPT_URL = 'YOUR_HS_GOOGLE_SCRIPT_URL';
+  if(SCRIPT_URL !== 'YOUR_GOOGLE_SCRIPT_URL'){
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    }).catch(err => {
+      console.warn('Submit error (data saved locally):', err);
+    });
+  } else {
+    console.log('Assessment payload (no script URL configured):', payload);
+  }
+}
+
+// ─── Toast ──────────────────────────────────────────────────────────────
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
