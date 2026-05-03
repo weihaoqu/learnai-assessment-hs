@@ -222,6 +222,29 @@ textarea:focus{outline:none;border-color:var(--primary)}
       <p class="subtitle" style="margin-top:6px" id="welcome-sub">6 quick questions about using AI (~3 min)</p>
     </div>
     <div class="card" style="display:flex;flex-direction:column;gap:16px">
+      <div class="input-group">
+        <label for="inp-nickname">Your Nickname</label>
+        <input type="text" id="inp-nickname" placeholder="e.g., Shadow, Mochi, DJ...">
+      </div>
+      <div class="input-group">
+        <label for="inp-birthmonth">Birth Month</label>
+        <select id="inp-birthmonth">
+          <option value="">Select month...</option>
+          <option value="01">January</option>
+          <option value="02">February</option>
+          <option value="03">March</option>
+          <option value="04">April</option>
+          <option value="05">May</option>
+          <option value="06">June</option>
+          <option value="07">July</option>
+          <option value="08">August</option>
+          <option value="09">September</option>
+          <option value="10">October</option>
+          <option value="11">November</option>
+          <option value="12">December</option>
+        </select>
+      </div>
+      <p style="font-size:.8rem;color:var(--text-light);text-align:center">Use the same nickname + month on both Pre and Post so we can match your results.</p>
       <div class="input-group" id="bg-group">
         <label for="inp-background">Coding Background</label>
         <select id="inp-background">
@@ -537,6 +560,16 @@ function chooseType(type){
 }
 
 function startQuiz(){
+  const nickname = document.getElementById('inp-nickname').value.trim();
+  const birthmonth = document.getElementById('inp-birthmonth').value;
+  if(!nickname){
+    showToast('Please enter your nickname');
+    return;
+  }
+  if(!birthmonth){
+    showToast('Please select your birth month');
+    return;
+  }
   if(testType === 'pre'){
     const bg = document.getElementById('inp-background').value;
     if(!bg){
@@ -544,8 +577,8 @@ function startQuiz(){
       return;
     }
   }
-  // Auto-generate participant ID from timestamp
-  participantId = 'P' + Date.now();
+  // Generate participant ID from nickname + birth month (for pairing)
+  participantId = (nickname.toLowerCase().replace(/\s+/g,'') + '-' + birthmonth);
   initShuffles();
   currentQ = 0;
   answers = new Array(6).fill(null);
