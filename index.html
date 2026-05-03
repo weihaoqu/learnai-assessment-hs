@@ -887,8 +887,7 @@ function submitData(includePost){
   try { localStorage.setItem(backupKey, JSON.stringify(payload)); } catch(e){}
 
   // POST to Google Apps Script
-  // TODO: Replace with your new HS Google Apps Script URL
-  const SCRIPT_URL = 'YOUR_HS_GOOGLE_SCRIPT_URL';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9f_MRHrMHI7WyUh1pTT_bftvXuA_y07yuoBcj0RdF12U7OOKLG_ttjXfGBT0OZl6xNw/exec';
   if(SCRIPT_URL !== 'YOUR_GOOGLE_SCRIPT_URL'){
     fetch(SCRIPT_URL, {
       method: 'POST',
