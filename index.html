@@ -223,8 +223,8 @@ textarea:focus{outline:none;border-color:var(--primary)}
     </div>
     <div class="card" style="display:flex;flex-direction:column;gap:16px">
       <div class="input-group">
-        <label for="inp-nickname">Your Nickname</label>
-        <input type="text" id="inp-nickname" placeholder="e.g., Shadow, Mochi, DJ...">
+        <label for="inp-nickname">Your Nickname <span style="font-weight:400;color:var(--text-light)">(don't use your real name)</span></label>
+        <input type="text" id="inp-nickname" placeholder="e.g., Shadow, Mochi, DJ..." maxlength="20">
       </div>
       <div class="input-group">
         <label for="inp-birthmonth">Birth Month</label>
@@ -577,8 +577,13 @@ function startQuiz(){
       return;
     }
   }
-  // Generate participant ID from nickname + birth month (for pairing)
-  participantId = (nickname.toLowerCase().replace(/\s+/g,'') + '-' + birthmonth);
+  // Generate participant ID: normalize (lowercase, alphanumeric only), strip formula chars
+  const cleanNick = nickname.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(!cleanNick){
+    showToast('Nickname must contain at least one letter or number');
+    return;
+  }
+  participantId = cleanNick + '-' + birthmonth;
   initShuffles();
   currentQ = 0;
   answers = new Array(6).fill(null);
