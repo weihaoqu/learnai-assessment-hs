@@ -343,143 +343,143 @@ textarea:focus{outline:none;border-color:var(--primary)}
 <script>
 // ─── Data ───────────────────────────────────────────────────────────────
 const SCENARIOS = [
+const SCENARIOS = [
   // ── PRE-TEST ──────────────────────────────────────────────────────────
-  // Correct positions: C, D, A, B, C, A  (distributed evenly)
+  // Correct positions: B, C, A, D, B, D  (distributed evenly)
   {
     id:'s01', cat:'foundations', catLabel:'AI Foundations', badge:'badge-foundations',
     img:'images/scenarios/s01-foundations.png',
-    q:'When an AI chatbot says "I think" or "I believe," what\'s actually happening?',
+    q:'A manager asks why a chatbot gave two different budget explanations from the same spreadsheet. What response best explains the issue?',
     choices:[
-      {letter:'A', text:'It\'s flagging uncertainty \u2014 a built-in signal that you should double-check this specific response', score:3},
-      {letter:'B', text:'It\'s sharing a genuine perspective shaped by analyzing billions of real-world text examples', score:1},
-      {letter:'C', text:'It\'s producing text that mimics human phrasing \u2014 no actual beliefs or opinions exist behind it', score:4},
-      {letter:'D', text:'Developers designed these phrases to make AI conversations feel more natural and relatable', score:2}
+      {letter:'A', text:'The model probably used different hidden sources, so compare both outputs against the spreadsheet', score:2},
+      {letter:'B', text:'The question left room for interpretation, so constrain calculations and request reproducible steps', score:4},
+      {letter:'C', text:'The spreadsheet likely changed between attempts, even if nobody intentionally edited the file', score:1},
+      {letter:'D', text:'The model may sample differently, so lower randomness and rerun the exact same prompt again', score:3}
     ]
   },
   {
     id:'s02', cat:'prompt', catLabel:'Prompt Engineering', badge:'badge-prompt',
     img:'images/scenarios/s02-prompt.png',
-    q:'You ask AI to "write something about climate change" and get a vague essay. What\'s the best fix?',
+    q:'You need AI to draft three versions of a donor email for different audiences. What instruction is most likely to produce useful first drafts?',
     choices:[
-      {letter:'A', text:'Regenerate several times \u2014 AI responses vary naturally, so a better version will likely appear', score:1},
-      {letter:'B', text:'Use a more advanced model \u2014 premium AI tools handle nuanced and complex topics with more depth', score:2},
-      {letter:'C', text:'Add quality instructions like "make it compelling, well-structured, and written in a professional tone"', score:1},
-      {letter:'D', text:'Specify audience and format: "200-word persuasive paragraph for college students, campus solar panels, 2 stats"', score:4}
+      {letter:'A', text:'Ask for three drafts, each with audience, tone, length, and donation amount clearly specified', score:3},
+      {letter:'B', text:'Ask for the best donor email possible, then edit whichever parts feel generic or off-target', score:1},
+      {letter:'C', text:'Provide audience profiles, required facts, forbidden claims, and a comparison table for tradeoffs', score:4},
+      {letter:'D', text:'Give one sample email and ask the model to make three similar versions with minor adjustments', score:2}
     ]
   },
   {
     id:'s03', cat:'evaluation', catLabel:'Critical Evaluation', badge:'badge-evaluation',
     img:'images/scenarios/s03-evaluation.png',
-    q:'AI writes a research summary with 5 citations. How should you treat them?',
+    q:'AI extracts six action items from a meeting transcript, and one seems unfamiliar. What should you do first?',
     choices:[
-      {letter:'A', text:'Look up each one individually \u2014 AI routinely generates complete but entirely fabricated academic references', score:4},
-      {letter:'B', text:'Verify a random sample of two or three \u2014 that\'s usually enough to gauge if the rest are trustworthy', score:2},
-      {letter:'C', text:'Citations with specific details like volume numbers, DOIs, and page ranges are usually from real papers', score:2},
-      {letter:'D', text:'If the author names and journal titles match real researchers in the field, they\'re most likely accurate', score:1}
+      {letter:'A', text:'Search the transcript for supporting language, then mark unsupported items for human review', score:4},
+      {letter:'B', text:'Ask the model to explain why it included that particular action item in more detail', score:2},
+      {letter:'C', text:'Compare the item with speaker names and timestamps if the tool provides that metadata', score:3},
+      {letter:'D', text:'Remove the unfamiliar item, since action lists should contain only remembered decisions from meetings', score:1}
     ]
   },
   {
     id:'s04', cat:'ethics', catLabel:'Ethics & Safety', badge:'badge-ethics',
     img:'images/scenarios/s04-ethics.png',
-    q:'Your company\'s free ChatGPT account is used to summarize customer complaint emails. What\'s the risk?',
+    q:'A nonprofit wants to paste volunteer notes into a public chatbot to summarize service needs. What is the best next step?',
     choices:[
-      {letter:'A', text:'The summaries could systematically misrepresent certain demographics or complaint types due to AI bias', score:3},
-      {letter:'B', text:'Customer names, contact details, and personal information in those messages may enter AI training data', score:4},
-      {letter:'C', text:'Staff may stop reading actual complaints carefully and miss important nuances the AI doesn\'t capture', score:2},
-      {letter:'D', text:'Minimal real risk \u2014 major AI providers like OpenAI process all user data through encrypted secure systems', score:1}
+      {letter:'A', text:'Use the chatbot because volunteer notes are operational records, not formal client records', score:1},
+      {letter:'B', text:'Remove names and addresses, then summarize only the remaining service request details safely', score:3},
+      {letter:'C', text:'Ask volunteers for written consent, because permission helps but rarely resolves confidentiality alone', score:2},
+      {letter:'D', text:'Classify sensitive fields first, then choose an approved tool and minimum necessary text to share', score:4}
     ]
   },
   {
     id:'s05', cat:'collaboration', catLabel:'Human-AI Collaboration', badge:'badge-collaboration',
     img:'images/scenarios/s05-collaboration.png',
-    q:'You\'re using AI to help write a project proposal. What\'s the best workflow?',
+    q:'A team uses AI to prepare a grant proposal under a tight deadline. Which workflow best preserves quality?',
     choices:[
-      {letter:'A', text:'Give AI a thorough brief about the project and let it create the structure and initial content', score:1},
-      {letter:'B', text:'Take turns \u2014 you write the key arguments and strategic sections, AI fills in supporting details', score:3},
-      {letter:'C', text:'Draft your own outline and core arguments first, then use AI to strengthen language and find gaps', score:4},
-      {letter:'D', text:'Have AI generate a complete first draft from your notes, then carefully review and edit for accuracy', score:2}
+      {letter:'A', text:'Let AI draft sections after the team agrees on claims, evidence, and evaluation criteria together', score:3},
+      {letter:'B', text:'Assign humans the argument and evidence map, then use AI for bounded drafting of sections', score:4},
+      {letter:'C', text:'Have AI generate the full proposal, then assign reviewers to improve weak sections before submission', score:2},
+      {letter:'D', text:'Divide the proposal among staff and use AI only for grammar checking at the very end', score:1}
     ]
   },
   {
     id:'s06', cat:'tool', catLabel:'Tool Selection', badge:'badge-tool',
     img:'images/scenarios/s06-tool.png',
-    q:'You need to extract specific data from a 50-page PDF report. Best approach?',
+    q:'You need totals from identical tables across eighty scanned invoices. Which tool choice is strongest?',
     choices:[
-      {letter:'A', text:'Use a specialized PDF AI tool that understands document structure, tables, and page layouts', score:4},
-      {letter:'B', text:'Copy and paste the most relevant sections you find into a general-purpose AI chat window', score:3},
-      {letter:'C', text:'Upload the entire document to ChatGPT and ask it to locate and extract the data you need', score:2},
-      {letter:'D', text:'Ask AI to find the report online so it can access and analyze the original source material', score:1}
+      {letter:'A', text:'Upload the invoices to a chatbot and ask it to total each visible table one by one', score:2},
+      {letter:'B', text:'Use OCR first, then manually verify every extracted total against each original invoice document', score:3},
+      {letter:'C', text:'Ask a general chatbot to read every invoice image and return one combined grand total', score:1},
+      {letter:'D', text:'Use OCR with table extraction, validation rules, and sampled human checks before totaling', score:4}
     ]
   },
   // ── POST-TEST ─────────────────────────────────────────────────────────
-  // Correct positions: D, C, B, D, A, B  (distributed evenly)
+  // Correct positions: C, B, A, D, C, A  (distributed evenly)
   {
     id:'s07', cat:'foundations', catLabel:'AI Foundations', badge:'badge-foundations',
     img:'images/scenarios/s07-foundations.png',
-    q:'A news headline says "AI scores 90% on a medical exam." What should you think first?',
+    q:'A sales team tests a model on last quarter\'s leads and gets excellent conversion predictions. What concern matters most before deployment?',
     choices:[
-      {letter:'A', text:'This shows AI can already provide meaningful support for clinical diagnosis and treatment planning', score:1},
-      {letter:'B', text:'AI is advancing so rapidly it will likely match most medical professionals within a few years', score:1},
-      {letter:'C', text:'I\'d need to know which exam, what question format, and how the evaluation was actually conducted', score:3},
-      {letter:'D', text:'Standardized test scores don\'t capture the clinical judgment, context, and reasoning doctors use daily', score:4}
+      {letter:'A', text:'The model may overfit last quarter, so test it on older quarters before trusting the results', score:3},
+      {letter:'B', text:'Sales staff may distrust predictions, so plan training before changing their daily qualification workflow', score:2},
+      {letter:'C', text:'The test may leak outcome information unavailable when new leads are scored in live production', score:4},
+      {letter:'D', text:'High accuracy usually means deployment is appropriate if the business goal matches current sales priorities', score:1}
     ]
   },
   {
     id:'s08', cat:'prompt', catLabel:'Prompt Engineering', badge:'badge-prompt',
     img:'images/scenarios/s08-prompt.png',
-    q:'An AI keeps giving you overly long responses. What\'s the most effective fix?',
+    q:'AI keeps returning long policy summaries when you need a two-column implementation checklist. What fix is best?',
     choices:[
-      {letter:'A', text:'Tell it "shorter please" or "be more concise" \u2014 clear direct feedback usually adjusts the output', score:2},
-      {letter:'B', text:'Keep regenerating until you get a shorter version \u2014 AI responses naturally vary in length each time', score:1},
-      {letter:'C', text:'Set a precise format constraint: "Answer in exactly 2 bullet points, maximum 15 words each"', score:4},
-      {letter:'D', text:'Start a new conversation \u2014 the current thread has likely locked into a verbose response pattern', score:2}
+      {letter:'A', text:'Tell the model its previous answers were too verbose and ask it to be more concise next time', score:1},
+      {letter:'B', text:'Specify table columns, maximum row count, inclusion rules, and an example row before generation', score:4},
+      {letter:'C', text:'Ask for bullet points only, because bullets usually prevent unnecessary explanatory paragraphs in outputs', score:2},
+      {letter:'D', text:'Set a word limit and request only actions, owners, deadlines, dependencies, and missing context', score:3}
     ]
   },
   {
     id:'s09', cat:'evaluation', catLabel:'Critical Evaluation', badge:'badge-evaluation',
     img:'images/scenarios/s09-evaluation.png',
-    q:'You ask AI the same question three times and get the same answer each time. This means:',
+    q:'You ask the same technical question three times and receive matching answers. What is the best interpretation?',
     choices:[
-      {letter:'A', text:'High reliability \u2014 consistent results across multiple independent attempts confirm the answer is sound', score:1},
-      {letter:'B', text:'Very little \u2014 the same model draws on the same data and will reproduce identical errors each time', score:4},
-      {letter:'C', text:'The AI has high confidence here, which generally correlates with more reliable and accurate responses', score:2},
-      {letter:'D', text:'Three matching answers give much stronger evidence of accuracy than a single unverified response does', score:1}
+      {letter:'A', text:'Consistency is useful evidence, but independent checks still determine whether the answer is correct', score:4},
+      {letter:'B', text:'Repetition confirms correctness because random errors would produce noticeably different answers each time', score:1},
+      {letter:'C', text:'Agreement suggests the prompt is stable, so verify only the highest impact claims before proceeding', score:3},
+      {letter:'D', text:'The model may be copying common patterns, so ask a second model to cross-check the answer', score:2}
     ]
   },
   {
     id:'s10', cat:'ethics', catLabel:'Ethics & Safety', badge:'badge-ethics',
     img:'images/scenarios/s10-ethics.png',
-    q:'An AI hiring tool rejects 80% of female applicants. The company says "the AI is just following the data." What\'s the right response?',
+    q:'An AI screening tool rejects a much higher share of applicants from one protected group. What should the company do first?',
     choices:[
-      {letter:'A', text:'The data is surfacing real qualification differences that human reviewers may have been consistently overlooking', score:1},
-      {letter:'B', text:'The algorithm needs rebalancing \u2014 adjust the model weights until it produces more equitable acceptance rates', score:2},
-      {letter:'C', text:'AI is fundamentally unsuited for any high-stakes decisions like hiring that directly affect people\'s livelihoods', score:3},
-      {letter:'D', text:'Historical hiring data has past discrimination baked in \u2014 the AI is amplifying old biases, not finding truth', score:4}
+      {letter:'A', text:'Lower the rejection threshold until group outcomes look more balanced overall in recent hiring reports', score:2},
+      {letter:'B', text:'Audit training data, features, and performance metrics across groups before continuing automated screening', score:3},
+      {letter:'C', text:'Keep using it because historical hiring data represents actual company standards and established priorities', score:1},
+      {letter:'D', text:'Pause affected decisions, investigate disparate impact, and require accountable human review before rejections', score:4}
     ]
   },
   {
     id:'s11', cat:'collaboration', catLabel:'Human-AI Collaboration', badge:'badge-collaboration',
     img:'images/scenarios/s11-collaboration.png',
-    q:'When is AI LEAST helpful for learning a new skill?',
+    q:'A student uses AI while learning recursion. Which use is least helpful for building transferable skill?',
     choices:[
-      {letter:'A', text:'When you have it complete tasks for you, then review the finished output to learn from its approach', score:4},
-      {letter:'B', text:'When you ask it to break down complex concepts into simple, step-by-step explanations you can follow', score:2},
-      {letter:'C', text:'When you submit your own work and ask it to identify your specific mistakes with detailed corrections', score:1},
-      {letter:'D', text:'When you ask it to create custom practice exercises and problems matched to your current skill level', score:1}
+      {letter:'A', text:'Asking for hints after making one attempt and explaining the current misunderstanding to the model', score:3},
+      {letter:'B', text:'Asking for a final solution immediately, then reading it carefully until the logic feels clear', score:1},
+      {letter:'C', text:'Comparing two personal recursion solutions with AI feedback on invariants and base cases afterward', score:4},
+      {letter:'D', text:'Asking AI to generate additional practice problems after completing the assigned ones independently first', score:2}
     ]
   },
   {
     id:'s12', cat:'tool', catLabel:'Tool Selection', badge:'badge-tool',
     img:'images/scenarios/s12-tool.png',
-    q:'When should you use a local/open-source AI model instead of ChatGPT?',
+    q:'A clinic wants AI to summarize internal procedures that must never leave approved infrastructure. Which option fits best?',
     choices:[
-      {letter:'A', text:'When you need the highest quality output \u2014 open-source models now match or exceed commercial AI tools', score:1},
-      {letter:'B', text:'When you\'re working with sensitive data that must not be transmitted to any third-party cloud servers', score:4},
-      {letter:'C', text:'When you need the fastest possible response times \u2014 local processing eliminates all network latency', score:2},
-      {letter:'D', text:'There\'s rarely a good reason \u2014 commercial tools consistently outperform open-source in nearly every task', score:1}
+      {letter:'A', text:'Run an approved local model or private deployment with documented access controls and monitoring', score:4},
+      {letter:'B', text:'Use any consumer chatbot if staff avoid entering patient names or addresses into the conversation', score:1},
+      {letter:'C', text:'Use an enterprise chatbot only after confirming retention, training, and audit settings in writing', score:3},
+      {letter:'D', text:'Encrypt documents before upload, then decrypt the generated summary inside the clinic systems afterward', score:2}
     ]
   }
-];
 
 const CATEGORIES = [
   {key:'foundations',    label:'AI Foundations',         color:'var(--cat-foundations)',    ids:['s01','s07']},
