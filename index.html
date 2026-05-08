@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>AI Mastery Assessment — High School</title>
+<title>AI Mastery Assessment</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -173,6 +173,24 @@ textarea:focus{outline:none;border-color:var(--primary)}
 .app-footer a{color:var(--primary);text-decoration:none;font-weight:600}
 .app-footer a:hover{text-decoration:underline}
 
+/* Consent Modal */
+.consent-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.consent-overlay.hidden{display:none}
+.consent-box{background:var(--surface);border-radius:var(--radius);max-width:640px;width:100%;max-height:90vh;overflow-y:auto;padding:28px 24px;box-shadow:var(--shadow-lg)}
+.consent-box h2{font-size:1.2rem;color:var(--primary);text-align:center;margin-bottom:4px}
+.consent-box h3{font-size:1rem;color:var(--text);text-align:center;margin-bottom:16px;font-weight:600}
+.consent-box h4{font-size:.95rem;color:var(--primary);margin:14px 0 6px;font-weight:700}
+.consent-box p,.consent-box li{font-size:.85rem;line-height:1.55;color:var(--text);margin-bottom:6px}
+.consent-box ul{margin:6px 0 10px 20px}
+.consent-box li{margin-bottom:3px}
+.consent-box .consent-highlight{background:rgba(13,148,136,.08);border:1px solid var(--primary);border-radius:var(--radius-sm);padding:12px 14px;margin:16px 0}
+.consent-box .consent-highlight p{font-size:.85rem;margin-bottom:4px}
+.consent-box .consent-highlight strong{color:var(--text)}
+.consent-btns{display:flex;gap:12px;margin-top:20px}
+.consent-btns .btn{flex:1;padding:14px;font-size:.95rem}
+.btn-reject{background:#ef4444;color:#fff}
+.btn-reject:hover{background:#dc2626}
+
 /* Responsive */
 @media(min-width:600px){
   .app{padding:24px}
@@ -181,6 +199,60 @@ textarea:focus{outline:none;border-color:var(--primary)}
 </style>
 </head>
 <body>
+
+<!-- CONSENT OVERLAY -->
+<div class="consent-overlay" id="consent-overlay">
+  <div class="consent-box">
+    <h2>INFORMED CONSENT FOR RESEARCH PARTICIPATION</h2>
+    <h3>Improving Efficiency in Higher Education through Customized AI Training</h3>
+
+    <p><strong>Principal Investigator:</strong> Weihao Qu, Phone: 732-263-5396, Email: wqu@monmouth.edu</p>
+    <p><strong>Co-Investigator:</strong> Ling Zheng, Phone: 732-571-4459, Email: lzheng@monmouth.edu</p>
+    <p>You are being asked to be a participant in a research study.</p>
+
+    <h4>What is the purpose of this study?</h4>
+    <p>The purpose of this study is about how artificial intelligence (AI) tools can be used to improve efficiency in learning, studying, and working at a mid-sized college. The goal of this project is to design and test customized AI training workshops, one-on-one sessions, and online modules for students, staff, and faculty.</p>
+
+    <h4>What will you have to do, if you agree to be in the study?</h4>
+    <p>If you agree to be in this study, your part will involve:</p>
+    <ul>
+      <li>Finish an online pre-assessment on your own AI tool knowledge before the training session when you book the training.</li>
+      <li>Attend a one-on-one training session (about 45&ndash;60 minutes).</li>
+      <li>Complete a short survey (5&ndash;10 minutes) at the end of the training session.</li>
+      <li>Receive a follow-up survey about one month later (5&ndash;10 minutes).</li>
+    </ul>
+    <p>Your total participation time will be about 55&ndash;70 minutes.</p>
+
+    <h4>Are there any possible risks to being in this study?</h4>
+    <p>If you agree to be in this study, there are no foreseeable risks to you, above those that you experience in your daily life.</p>
+
+    <h4>Are there any possible benefits to being in this study?</h4>
+    <p>There is no direct benefit to you by participating in this study.</p>
+
+    <h4>How will your study information be protected?</h4>
+    <p>Your name will not be linked in any way to the information you provide. Neither IP addresses nor any other identifiable information will be collected. The registered email will be collected during the one-on-one training in order to contact the participants with the post survey.</p>
+    <p>Data will be collected using the Internet; no guarantees can be made regarding the interception of data sent via the Internet by any third party. Confidentiality will be maintained to the degree permitted by the technology used.</p>
+    <p>Your information will be viewed by the study team and other people within Monmouth University who help administer and oversee research. If information from this study is published or presented at scientific meetings, your name and other identifiable information will not be used.</p>
+
+    <h4>Important Contact Information</h4>
+    <p>Please contact Dr. Weihao Qu at 732-263-5396 or via e-mail at wqu@monmouth.edu if you have any questions about the study, or if you believe you have experienced harm or injury as a result of being in this study.</p>
+    <p>If your participation in this research study has caused you to feel uncomfortable in any way, or if by participating in this research study it has prompted you to consider personal matters about which you are concerned, we encourage you to immediately stop participating in this research study and strongly encourage you to contact support services. If you are a Monmouth University student, you can contact Monmouth University's Counseling and Psychological Services (CPS) to schedule a confidential appointment to speak to a counselor at 732-571-7517. If you are a Monmouth University employee, you can contact Monmouth University's Employee Assistance Program (EAP) at their confidential intake number at 1-800-300-0628. If you are a member of the general public, you may contact your local community mental health center or the National Helpline of the Substance Abuse and Mental Health Services Administration (SAMHSA) at 1-800-662-HELP (4357)&mdash;a free, confidential, 24/7 resource for individuals seeking counseling or mental health support.</p>
+    <p>In addition, for any questions about your rights as a research participant, please contact the Monmouth University Institutional Review Board via e-mail at IRB@monmouth.edu.</p>
+
+    <h4 style="color:var(--primary)">Your participation is voluntary!</h4>
+    <p>Your participation in this study is voluntary. You may decide not to participate at all or, if you start the study, you may withdraw at any time without any penalty. Withdrawal or refusing to participate will not affect your relationship with Monmouth University in any way.</p>
+
+    <div class="consent-highlight">
+      <p><strong>If you click &lsquo;I ACCEPT&rsquo; below, it means that you have (a) read this consent form, (b) you agree to be a participant in this study, and (c) you are over 18 years old.</strong></p>
+      <p style="margin-bottom:0">If you click &lsquo;I DO NOT ACCEPT&rsquo;, you will still go through the steps listed within the purpose of the study, but your data will not be used for research purposes.</p>
+    </div>
+
+    <div class="consent-btns">
+      <button class="btn btn-reject" onclick="handleConsent(false)">I DO NOT ACCEPT</button>
+      <button class="btn btn-primary" onclick="handleConsent(true)">I ACCEPT</button>
+    </div>
+  </div>
+</div>
 
 <div class="app" id="app">
 
@@ -192,8 +264,8 @@ textarea:focus{outline:none;border-color:var(--primary)}
       </div>
       <div>
         <h1>AI Mastery<br>Assessment</h1>
-        <p class="subtitle" style="margin-top:8px">6 real-world scenarios. One tap each.</p>
-        <p class="subtitle" style="margin-top:4px">High School AI Workshop Edition</p>
+        <p class="subtitle" style="margin-top:8px">5 real-world scenarios. One tap each.</p>
+        <p class="subtitle" style="margin-top:4px">For <a href="https://lainow.com" target="_blank" style="color:var(--primary);font-weight:600;text-decoration:underline">LearnAI (LAI)</a> sessions only</p>
       </div>
       <div class="chooser-cards">
         <div class="chooser-card" onclick="chooseType('pre')">
@@ -211,7 +283,8 @@ textarea:focus{outline:none;border-color:var(--primary)}
           </div>
         </div>
       </div>
-      <a href="https://lainow.com" target="_blank" class="btn btn-outline" style="font-size:.85rem;padding:10px 20px">Learn more at lainow.com</a>
+      <a href="https://lainow.com" target="_blank" class="btn btn-outline" style="font-size:.85rem;padding:10px 20px">Book a Session at lainow.com</a>
+      <a href="followup.html" style="font-size:.8rem;color:var(--text-light);margin-top:4px;text-decoration:none">📋 Post-Semester Follow-Up Survey</a>
     </div>
   </div>
 
@@ -342,7 +415,6 @@ textarea:focus{outline:none;border-color:var(--primary)}
 
 <script>
 // ─── Data ───────────────────────────────────────────────────────────────
-const SCENARIOS = [
 const SCENARIOS = [
   // ── PRE-TEST ──────────────────────────────────────────────────────────
   // Correct positions: B, C, A, D, B, D  (distributed evenly)
@@ -480,6 +552,7 @@ const SCENARIOS = [
       {letter:'D', text:'Encrypt documents before upload, then decrypt the generated summary inside the clinic systems afterward', score:2}
     ]
   }
+];
 
 const CATEGORIES = [
   {key:'foundations',    label:'AI Foundations',         color:'var(--cat-foundations)',    ids:['s01','s07']},
@@ -500,6 +573,22 @@ const LEVELS = [
 // ─── Scenario Sets ──────────────────────────────────────────────────────
 const PRE_IDS  = ['s01','s02','s03','s04','s05','s06']; // one per category
 const POST_IDS = ['s07','s08','s09','s10','s11','s12']; // parallel form
+
+// ─── Consent ────────────────────────────────────────────────────────────
+let consentGiven = null; // true, false, or null
+(function initConsent(){
+  const stored = localStorage.getItem('lai_consent');
+  if(stored !== null){
+    consentGiven = stored === 'true';
+    document.getElementById('consent-overlay').classList.add('hidden');
+  }
+})();
+
+function handleConsent(accepted){
+  consentGiven = accepted;
+  localStorage.setItem('lai_consent', String(accepted));
+  document.getElementById('consent-overlay').classList.add('hidden');
+}
 
 // ─── State ──────────────────────────────────────────────────────────────
 let testType = null; // 'pre' or 'post'
@@ -895,6 +984,7 @@ function submitData(includePost){
   const payload = {
     participant_id: participantId,
     test_type: testType,
+    consent: consentGiven === true ? 'yes' : 'no',
     coding_background: testType === 'pre' ? bg : '',
     timestamp: new Date().toISOString(),
     total_score: total,
@@ -925,7 +1015,7 @@ function submitData(includePost){
   try { localStorage.setItem(backupKey, JSON.stringify(payload)); } catch(e){}
 
   // POST to Google Apps Script
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9f_MRHrMHI7WyUh1pTT_bftvXuA_y07yuoBcj0RdF12U7OOKLG_ttjXfGBT0OZl6xNw/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYE-MArqkRyC_n-C-WHotNyb8H1ipbIrqvfQOi0qbszXti_2xo2pzJvBMWwJ01MbWMuw/exec';
   if(SCRIPT_URL !== 'YOUR_GOOGLE_SCRIPT_URL'){
     fetch(SCRIPT_URL, {
       method: 'POST',
