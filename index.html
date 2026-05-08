@@ -200,58 +200,9 @@ textarea:focus{outline:none;border-color:var(--primary)}
 </head>
 <body>
 
-<!-- CONSENT OVERLAY -->
-<div class="consent-overlay" id="consent-overlay">
-  <div class="consent-box">
-    <h2>INFORMED CONSENT FOR RESEARCH PARTICIPATION</h2>
-    <h3>Improving Efficiency in Higher Education through Customized AI Training</h3>
-
-    <p><strong>Principal Investigator:</strong> Weihao Qu, Phone: 732-263-5396, Email: wqu@monmouth.edu</p>
-    <p><strong>Co-Investigator:</strong> Ling Zheng, Phone: 732-571-4459, Email: lzheng@monmouth.edu</p>
-    <p>You are being asked to be a participant in a research study.</p>
-
-    <h4>What is the purpose of this study?</h4>
-    <p>The purpose of this study is about how artificial intelligence (AI) tools can be used to improve efficiency in learning, studying, and working at a mid-sized college. The goal of this project is to design and test customized AI training workshops, one-on-one sessions, and online modules for students, staff, and faculty.</p>
-
-    <h4>What will you have to do, if you agree to be in the study?</h4>
-    <p>If you agree to be in this study, your part will involve:</p>
-    <ul>
-      <li>Finish an online pre-assessment on your own AI tool knowledge before the training session when you book the training.</li>
-      <li>Attend a one-on-one training session (about 45&ndash;60 minutes).</li>
-      <li>Complete a short survey (5&ndash;10 minutes) at the end of the training session.</li>
-      <li>Receive a follow-up survey about one month later (5&ndash;10 minutes).</li>
-    </ul>
-    <p>Your total participation time will be about 55&ndash;70 minutes.</p>
-
-    <h4>Are there any possible risks to being in this study?</h4>
-    <p>If you agree to be in this study, there are no foreseeable risks to you, above those that you experience in your daily life.</p>
-
-    <h4>Are there any possible benefits to being in this study?</h4>
-    <p>There is no direct benefit to you by participating in this study.</p>
-
-    <h4>How will your study information be protected?</h4>
-    <p>Your name will not be linked in any way to the information you provide. Neither IP addresses nor any other identifiable information will be collected. The registered email will be collected during the one-on-one training in order to contact the participants with the post survey.</p>
-    <p>Data will be collected using the Internet; no guarantees can be made regarding the interception of data sent via the Internet by any third party. Confidentiality will be maintained to the degree permitted by the technology used.</p>
-    <p>Your information will be viewed by the study team and other people within Monmouth University who help administer and oversee research. If information from this study is published or presented at scientific meetings, your name and other identifiable information will not be used.</p>
-
-    <h4>Important Contact Information</h4>
-    <p>Please contact Dr. Weihao Qu at 732-263-5396 or via e-mail at wqu@monmouth.edu if you have any questions about the study, or if you believe you have experienced harm or injury as a result of being in this study.</p>
-    <p>If your participation in this research study has caused you to feel uncomfortable in any way, or if by participating in this research study it has prompted you to consider personal matters about which you are concerned, we encourage you to immediately stop participating in this research study and strongly encourage you to contact support services. If you are a Monmouth University student, you can contact Monmouth University's Counseling and Psychological Services (CPS) to schedule a confidential appointment to speak to a counselor at 732-571-7517. If you are a Monmouth University employee, you can contact Monmouth University's Employee Assistance Program (EAP) at their confidential intake number at 1-800-300-0628. If you are a member of the general public, you may contact your local community mental health center or the National Helpline of the Substance Abuse and Mental Health Services Administration (SAMHSA) at 1-800-662-HELP (4357)&mdash;a free, confidential, 24/7 resource for individuals seeking counseling or mental health support.</p>
-    <p>In addition, for any questions about your rights as a research participant, please contact the Monmouth University Institutional Review Board via e-mail at IRB@monmouth.edu.</p>
-
-    <h4 style="color:var(--primary)">Your participation is voluntary!</h4>
-    <p>Your participation in this study is voluntary. You may decide not to participate at all or, if you start the study, you may withdraw at any time without any penalty. Withdrawal or refusing to participate will not affect your relationship with Monmouth University in any way.</p>
-
-    <div class="consent-highlight">
-      <p><strong>If you click &lsquo;I ACCEPT&rsquo; below, it means that you have (a) read this consent form, (b) you agree to be a participant in this study, and (c) you are over 18 years old.</strong></p>
-      <p style="margin-bottom:0">If you click &lsquo;I DO NOT ACCEPT&rsquo;, you will still go through the steps listed within the purpose of the study, but your data will not be used for research purposes.</p>
-    </div>
-
-    <div class="consent-btns">
-      <button class="btn btn-reject" onclick="handleConsent(false)">I DO NOT ACCEPT</button>
-      <button class="btn btn-primary" onclick="handleConsent(true)">I ACCEPT</button>
-    </div>
-  </div>
+<!-- CONSENT OVERLAY (content set dynamically per test type) -->
+<div class="consent-overlay hidden" id="consent-overlay">
+  <div class="consent-box" id="consent-content"></div>
 </div>
 
 <div class="app" id="app">
@@ -574,20 +525,85 @@ const LEVELS = [
 const PRE_IDS  = ['s01','s02','s03','s04','s05','s06']; // one per category
 const POST_IDS = ['s07','s08','s09','s10','s11','s12']; // parallel form
 
-// ─── Consent ────────────────────────────────────────────────────────────
+// ─── Consent (HS version — different text for pre vs post) ──────────────
 let consentGiven = null; // true, false, or null
-(function initConsent(){
-  const stored = localStorage.getItem('lai_consent');
-  if(stored !== null){
-    consentGiven = stored === 'true';
-    document.getElementById('consent-overlay').classList.add('hidden');
-  }
-})();
+let pendingTestType = null; // set when consent is needed before proceeding
+
+const CONSENT_PRE_HTML = `
+  <h2>Before You Begin the Pre-Test</h2>
+  <p>Hi! My name is Dr. Weihao Qu, a professor at Monmouth University. Welcome to the AI training session!</p>
+  <p>Before we start, you will complete a short knowledge assessment (~5 minutes) about software engineering and AI. This pre-test helps us understand what you already know before the training.</p>
+  <h4>Your Rights:</h4>
+  <ul>
+    <li>Being in this study is 100% your choice.</li>
+    <li>You can stop at any time without telling anyone why.</li>
+    <li>Your decision will NOT affect your Monmouth Youth Communication Club (MY-CC) membership, your project, or your relationship with any mentor or leader.</li>
+    <li>Your name is collected only to match your before/after assessments, then deleted.</li>
+    <li>Your name and school will NEVER appear in any publication.</li>
+    <li>You will NOT be audio- or video-recorded.</li>
+  </ul>
+  <h4>Important</h4>
+  <p>Your parent or guardian must have already submitted the Parental Permission Form before you participate. If they have not, please let Dr. Qu know now.</p>
+  <p>You will review the full informed consent/assent form on the LearnAI Course web app later in this session.</p>
+  <div class="consent-highlight">
+    <p><strong>By clicking &lsquo;I Agree&rsquo; below, you confirm that:</strong></p>
+    <ul style="margin-top:6px">
+      <li>You have read the information above.</li>
+      <li>Your parent or guardian has already submitted the Parental Permission Form.</li>
+      <li>You understand that participation is voluntary and you can stop at any time.</li>
+      <li>You agree to participate in this pre-test.</li>
+    </ul>
+    <p style="margin-bottom:0">If you do not wish to participate, click &lsquo;I Do Not Agree&rsquo; and you will not be asked any questions.</p>
+  </div>
+  <p style="font-size:.8rem;color:var(--text-light)"><strong>Questions?</strong> Email Dr. Qu at wqu@monmouth.edu or call 732-263-5396. For questions about your rights, contact the Monmouth University IRB at irb@monmouth.edu or 732-263-5726.</p>
+  <div class="consent-btns">
+    <button class="btn btn-reject" onclick="handleConsent(false)">I Do Not Agree</button>
+    <button class="btn btn-primary" onclick="handleConsent(true)">I Agree</button>
+  </div>`;
+
+const CONSENT_POST_HTML = `
+  <h2>Before You Begin the Post-Test</h2>
+  <p>Thank you for completing the AI training session! You will now complete a short knowledge post-test (~5 minutes). This helps us measure what you learned during the session.</p>
+  <h4>Reminder of Your Rights:</h4>
+  <ul>
+    <li>Participation is voluntary. You can stop at any time.</li>
+    <li>Your decision will NOT affect your MY-CC membership or relationships.</li>
+    <li>Your name is collected only to match your before/after assessments, then deleted.</li>
+    <li>Your name and school will NEVER appear in any publication.</li>
+    <li>You are NOT being audio- or video-recorded.</li>
+  </ul>
+  <h4>Important</h4>
+  <p>Your parent or guardian must have already submitted the Parental Permission Form. If they have not, please let Dr. Qu know.</p>
+  <p>You reviewed the full informed consent/assent form on the LearnAI Course web app earlier in this session.</p>
+  <div class="consent-highlight">
+    <p><strong>By clicking &lsquo;I Agree&rsquo; below, you confirm that:</strong></p>
+    <ul style="margin-top:6px">
+      <li>Your parent or guardian has already submitted the Parental Permission Form.</li>
+      <li>You understand that participation is voluntary and you can stop at any time.</li>
+      <li>You agree to participate in this post-test.</li>
+    </ul>
+    <p style="margin-bottom:0">If you do not wish to participate, click &lsquo;I Do Not Agree.&rsquo;</p>
+  </div>
+  <p style="font-size:.8rem;color:var(--text-light)"><strong>Questions?</strong> Email Dr. Qu at wqu@monmouth.edu or call 732-263-5396. For questions about your rights, contact the Monmouth University IRB at irb@monmouth.edu or 732-263-5726.</p>
+  <div class="consent-btns">
+    <button class="btn btn-reject" onclick="handleConsent(false)">I Do Not Agree</button>
+    <button class="btn btn-primary" onclick="handleConsent(true)">I Agree</button>
+  </div>`;
+
+function showConsent(type){
+  pendingTestType = type;
+  const el = document.getElementById('consent-content');
+  el.innerHTML = type === 'pre' ? CONSENT_PRE_HTML : CONSENT_POST_HTML;
+  document.getElementById('consent-overlay').classList.remove('hidden');
+}
 
 function handleConsent(accepted){
   consentGiven = accepted;
-  localStorage.setItem('lai_consent', String(accepted));
+  const key = 'lai_hs_consent_' + pendingTestType;
+  localStorage.setItem(key, String(accepted));
   document.getElementById('consent-overlay').classList.add('hidden');
+  // Proceed to the original chooseType flow
+  proceedAfterConsent(pendingTestType);
 }
 
 // ─── State ──────────────────────────────────────────────────────────────
@@ -630,6 +646,19 @@ function showScreen(id){
 }
 
 function chooseType(type){
+  // Check if consent already given for this test type
+  const key = 'lai_hs_consent_' + type;
+  const stored = localStorage.getItem(key);
+  if(stored === null){
+    // Show consent first
+    showConsent(type);
+    return;
+  }
+  consentGiven = stored === 'true';
+  proceedAfterConsent(type);
+}
+
+function proceedAfterConsent(type){
   testType = type;
   const ids = type === 'pre' ? PRE_IDS : POST_IDS;
   activeScenarios = ids.map(id => SCENARIOS.find(s => s.id === id));
