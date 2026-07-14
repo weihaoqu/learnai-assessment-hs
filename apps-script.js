@@ -15,7 +15,7 @@
  * SHEETS AUTO-CREATED:
  *   "Pre-Test"  — 6 question scores (S1-S6) + category scores
  *   "Post-Test" — 6 question scores (S7-S12) + category scores + feedback
- *   "Paired"    — auto-matched pre/post by session date, with gain scores
+ *   "Paired"    — auto-matched pre/post by private participant code, with gain scores
  *   "Rubric"    — scoring rubric reference (auto-generated once)
  *
  * SCORING (per test):
@@ -26,9 +26,12 @@
  *   Level 4 (21-24): Process Partner
  *
  * PAIRING LOGIC:
- *   Since participant_id is auto-generated (timestamp-based), pairing is done
- *   by matching pre and post submissions from the SAME calendar date.
- *   If multiple pre or post exist on the same date, uses the latest of each.
+ *   Students enter the same private code on each survey/test.
+ *   Pairing is done by matching pre and post submissions with the same
+ *   participant_id. The Paired sheet excludes rows where consent is not "yes".
+ *   If multiple consenting pre or post submissions exist for the same code,
+ *   the Paired sheet uses the latest of each. Raw Pre-Test and Post-Test
+ *   sheets remain append-only.
  */
 
 // ─── Column definitions ─────────────────────────────────────────────────
@@ -86,6 +89,20 @@ function extractDate(isoString) {
   return String(isoString).substring(0, 10); // "2025-03-10"
 }
 
+// ─── Participant code helpers ──────────────────────────────────────────
+function normalizeParticipantId(value) {
+  return String(value || '').trim().toUpperCase();
+}
+
+function isValidParticipantId(value) {
+  return /^([0-9]|[1-9][0-9]|100)[A-Z]$/.test(value);
+}
+
+function timestampMs(value) {
+  var ms = new Date(value).getTime();
+  return isNaN(ms) ? 0 : ms;
+}
+
 // ─── POST handler ───────────────────────────────────────────────────────
 function doPost(e) {
   try {
@@ -93,6 +110,13 @@ function doPost(e) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var date = extractDate(data.timestamp);
     var level = getLevel(data.total_score);
+    var participantId = normalizeParticipantId(data.participant_id);
+
+    if (!isValidParticipantId(participantId)) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: 'error', message: 'Invalid participant code' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
 
     var sheetName = data.test_type === 'pre' ? 'Pre-Test' : 'Post-Test';
     var sheet = getOrCreateSheet(ss, sheetName,
@@ -102,7 +126,7 @@ function doPost(e) {
     var row;
     if (data.test_type === 'pre') {
       row = [
-        data.participant_id, data.timestamp, date, data.consent || '', data.coding_background,
+        participantId, data.timestamp, date, data.consent || '', data.coding_background,
         data.total_score, level,
         data.cat_foundations, data.cat_prompt, data.cat_evaluation, data.cat_ethics, data.cat_collaboration, data.cat_tool,
         data.s01_score, data.s01_choice,
@@ -115,7 +139,7 @@ function doPost(e) {
       ];
     } else {
       row = [
-        data.participant_id, data.timestamp, date, data.consent || '',
+        participantId, data.timestamp, date, data.consent || '',
         data.total_score, level,
         data.cat_foundations, data.cat_prompt, data.cat_evaluation, data.cat_ethics, data.cat_collaboration, data.cat_tool,
         data.s07_score, data.s07_choice,
@@ -181,15 +205,17 @@ function updatePairedSheet(ss) {
   var preData = preSheet.getRange(2, 1, preSheet.getLastRow() - 1, preSheet.getLastColumn()).getValues();
   var postData = postSheet.getRange(2, 1, postSheet.getLastRow() - 1, postSheet.getLastColumn()).getValues();
 
-  // Index by date — keep latest entry per date
+  // Index by private participant code — keep latest entry per code
   // Pre: participant_id(0), timestamp(1), date(2), consent(3), coding_bg(4), total(5), level(6),
   //       cat_foundations(7), cat_prompt(8), cat_evaluation(9), cat_ethics(10), cat_collaboration(11), cat_tool(12)
   var preMap = {};
   preData.forEach(function(row) {
-    var date = String(row[2]);
-    if (!preMap[date] || String(row[1]) > String(preMap[date].timestamp)) {
-      preMap[date] = {
-        id: row[0], timestamp: row[1], coding_bg: row[4],
+    if (String(row[3]).toLowerCase() !== 'yes') return;
+    var id = normalizeParticipantId(row[0]);
+    if (!isValidParticipantId(id)) return;
+    if (!preMap[id] || timestampMs(row[1]) > timestampMs(preMap[id].timestamp)) {
+      preMap[id] = {
+        id: id, timestamp: row[1], date: row[2], coding_bg: row[4],
         total: row[5], level: row[6],
         foundations: row[7], prompt: row[8], evaluation: row[9], ethics: row[10], collaboration: row[11], tool: row[12]
       };
@@ -201,10 +227,12 @@ function updatePairedSheet(ss) {
   //        s07_score(12)..s12_choice(23), analysis(24), likert(25), open(26)
   var postMap = {};
   postData.forEach(function(row) {
-    var date = String(row[2]);
-    if (!postMap[date] || String(row[1]) > String(postMap[date].timestamp)) {
-      postMap[date] = {
-        id: row[0], timestamp: row[1],
+    if (String(row[3]).toLowerCase() !== 'yes') return;
+    var id = normalizeParticipantId(row[0]);
+    if (!isValidParticipantId(id)) return;
+    if (!postMap[id] || timestampMs(row[1]) > timestampMs(postMap[id].timestamp)) {
+      postMap[id] = {
+        id: id, timestamp: row[1], date: row[2],
         total: row[4], level: row[5],
         foundations: row[6], prompt: row[7], evaluation: row[8], ethics: row[9], collaboration: row[10], tool: row[11],
         analysis: row[24], likert: row[25], open: row[26]
@@ -225,13 +253,13 @@ function updatePairedSheet(ss) {
   pairedSheet.getRange(1, 1, 1, PAIRED_HEADERS.length).setFontWeight('bold');
   pairedSheet.setFrozenRows(1);
 
-  // Match by date
-  var dates = Object.keys(preMap).filter(function(d) { return postMap[d]; }).sort();
-  dates.forEach(function(date) {
-    var pre = preMap[date];
-    var post = postMap[date];
+  // Match by private code
+  var ids = Object.keys(preMap).filter(function(id) { return postMap[id]; }).sort();
+  ids.forEach(function(id) {
+    var pre = preMap[id];
+    var post = postMap[id];
     pairedSheet.appendRow([
-      date, pre.coding_bg,
+      pre.date, pre.coding_bg,
       pre.id, post.id,
       pre.total, post.total, post.total - pre.total, pre.level, post.level,
       pre.foundations, post.foundations, post.foundations - pre.foundations,
@@ -340,9 +368,11 @@ function ensureRubricSheet(ss) {
 
   sheet.appendRow(['PAIRING LOGIC']);
   sheet.getRange(sheet.getLastRow(), 1).setFontWeight('bold');
-  sheet.appendRow(['Pre and Post tests are matched by calendar date (same session day).']);
-  sheet.appendRow(['Participant IDs are auto-generated timestamps — no manual entry needed.']);
-  sheet.appendRow(['Gain = Post score - Pre score. Positive gain = improvement after LAI session.']);
+  sheet.appendRow(['Pre and Post tests are matched by the private code students enter on every survey/test.']);
+  sheet.appendRow(['Rows marked consent=no are excluded from the Paired research summary.']);
+  sheet.appendRow(['Private code format: number 0-100 plus one letter A-Z, for example 57R.']);
+  sheet.appendRow(['If multiple submissions use the same code, the Paired sheet uses the latest pre and latest post. Raw sheets remain append-only.']);
+  sheet.appendRow(['Gain = Post score - Pre score. Positive gain = improvement after the AI training session.']);
   sheet.appendRow([]);
 
   sheet.appendRow(['STATISTICAL ANALYSIS']);

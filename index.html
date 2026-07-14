@@ -246,28 +246,10 @@ textarea:focus{outline:none;border-color:var(--primary)}
     </div>
     <div class="card" style="display:flex;flex-direction:column;gap:16px">
       <div class="input-group">
-        <label for="inp-nickname">Your Nickname <span style="font-weight:400;color:var(--text-light)">(don't use your real name)</span></label>
-        <input type="text" id="inp-nickname" placeholder="e.g., Shadow, Mochi, DJ..." maxlength="20">
+        <label for="inp-code">Your Private Code</label>
+        <input type="text" id="inp-code" placeholder="e.g., 57R" maxlength="4" autocapitalize="characters" autocomplete="off" spellcheck="false">
       </div>
-      <div class="input-group">
-        <label for="inp-birthmonth">Birth Month</label>
-        <select id="inp-birthmonth">
-          <option value="">Select month...</option>
-          <option value="01">January</option>
-          <option value="02">February</option>
-          <option value="03">March</option>
-          <option value="04">April</option>
-          <option value="05">May</option>
-          <option value="06">June</option>
-          <option value="07">July</option>
-          <option value="08">August</option>
-          <option value="09">September</option>
-          <option value="10">October</option>
-          <option value="11">November</option>
-          <option value="12">December</option>
-        </select>
-      </div>
-      <p style="font-size:.8rem;color:var(--text-light);text-align:center">Use the same nickname + month on both Pre and Post so we can match your results.</p>
+      <p style="font-size:.8rem;color:var(--text-light);text-align:center">Make up a number from 0 to 100 plus one letter A-Z, like <strong>57R</strong>. Use the same code on every survey and test.</p>
       <div class="input-group" id="bg-group">
         <label for="inp-background">Coding Background</label>
         <select id="inp-background">
@@ -524,81 +506,67 @@ const LEVELS = [
 const PRE_IDS  = ['s01','s02','s03','s04','s05','s06']; // one per category
 const POST_IDS = ['s07','s08','s09','s10','s11','s12']; // parallel form
 
-// ─── Consent (HS version — different text for pre vs post) ──────────────
+// ─── Consent / assent (HS version) ─────────────────────────────────────
 let consentGiven = null; // true, false, or null
 let pendingTestType = null; // set when consent is needed before proceeding
+const CONSENT_STORAGE_PREFIX = 'lai_hs_assent_20260714_';
 
-const CONSENT_PRE_HTML = `
-  <h2>Before You Begin the Pre-Test</h2>
-  <p>Hi! My name is Dr. Weihao Qu, a professor at Monmouth University. Welcome to the AI training session!</p>
-  <p>Before we start, you will complete a short knowledge assessment (~5 minutes) about software engineering and AI. This pre-test helps us understand what you already know before the training.</p>
-  <h4>Your Rights:</h4>
+const CONSENT_FORM_HTML = `
+  <h2>Project Title: A Learning Platform on AI Education for High School Learners</h2>
+  <h3>Principal Investigator (person running this study): Dr. Weihao Qu, wqu@monmouth.edu, 732-263-5396</h3>
+  <p>You are being asked to be in a research study.</p>
+  <h4>Purpose</h4>
+  <p>My name is Dr. Weihao Qu, and I am doing a study to learn how a hands-on AI training session helps high school students learn about software engineering and AI tools (like ChatGPT, Claude, and GitHub Copilot). I want to see how your knowledge and your opinions about AI change before and after the session.</p>
+  <h4>What Will Be Done</h4>
+  <p>If you agree, you will take part in one AI training session, either in person at Monmouth University (Howard Hall 216 or 208) or online by Zoom.</p>
+  <p>During the session you will:</p>
   <ul>
-    <li>Being in this study is 100% your choice.</li>
-    <li>You can stop at any time without telling anyone why.</li>
-    <li>Your decision will NOT affect your Monmouth Youth Communication Club (MY-CC) membership, your project, or your relationship with any mentor or leader.</li>
-    <li>Your name is collected only to match your before/after assessments, then deleted.</li>
-    <li>Your name and school will NEVER appear in any publication.</li>
-    <li>You will NOT be audio- or video-recorded.</li>
+    <li>read and agree to this assent form first, before anything else;</li>
+    <li>make up a private random code (a number from 0 to 100 plus a letter from A to Z, like "57R") that you type on each survey and test so your answers can be matched;</li>
+    <li>complete a short attitude survey (about 5 minutes);</li>
+    <li>take a short knowledge pre-test (about 5 minutes);</li>
+    <li>follow a live demonstration and try hands-on AI activities with Dr. Qu (about 30-40 minutes);</li>
+    <li>take a short knowledge post-test (about 5 minutes);</li>
+    <li>complete a short attitude survey at the end (about 5 minutes).</li>
   </ul>
-  <h4>Important</h4>
-  <p>Your parent or guardian must have already submitted the Parental Permission Form before you participate. If they have not, please let Dr. Qu know now.</p>
-  <p>You will review the full informed consent/assent form on the LearnAI Course web app later in this session.</p>
-  <div class="consent-highlight">
-    <p><strong>By clicking &lsquo;I Agree&rsquo; below, you confirm that:</strong></p>
-    <ul style="margin-top:6px">
-      <li>You have read the information above.</li>
-      <li>Your parent or guardian has already submitted the Parental Permission Form.</li>
-      <li>You understand that participation is voluntary and you can stop at any time.</li>
-      <li>You agree to participate in this pre-test.</li>
-    </ul>
-    <p style="margin-bottom:0">If you do not wish to participate, click &lsquo;I Do Not Agree&rsquo; and you will not be asked any questions.</p>
-  </div>
-  <p style="font-size:.8rem;color:var(--text-light)"><strong>Questions?</strong> Email Dr. Qu at wqu@monmouth.edu or call 732-263-5396. For questions about your rights, contact the Monmouth University IRB at irb@monmouth.edu or 732-263-5726.</p>
-  <div class="consent-btns">
-    <button class="btn btn-reject" onclick="handleConsent(false)">I Do Not Agree</button>
-    <button class="btn btn-primary" onclick="handleConsent(true)">I Agree</button>
-  </div>`;
-
-const CONSENT_POST_HTML = `
-  <h2>Before You Begin the Post-Test</h2>
-  <p>Thank you for completing the AI training session! You will now complete a short knowledge post-test (~5 minutes). This helps us measure what you learned during the session.</p>
-  <h4>Reminder of Your Rights:</h4>
+  <p>You will use your own laptop, and you will NOT be audio- or video-recorded.</p>
+  <p>You will be in the study for about 60-90 minutes, all in this one session.</p>
+  <h4>Costs or Payments to You</h4>
+  <p>You will not have to pay anything, and you won&rsquo;t be paid for being in this study.</p>
+  <h4>Risks/Discomforts</h4>
+  <p>There are no foreseeable risks beyond those of everyday life. You might feel a little frustrated when learning a new AI tool, but this is no greater than what you would feel during normal computer use.</p>
+  <h4>Benefits</h4>
+  <p>There is no direct benefit to you. You may gain hands-on experience with AI tools for software engineering. By being in this study, you also help us learn how to design better AI learning programs for students.</p>
+  <h4>In Case of Injury</h4>
+  <p>If you get hurt as a result of being in this study, your parents/ guardian have been told what to do. You can also tell Dr. Weihao Qu, at 732-263-5396, or wqu@monmouth.edu</p>
+  <h4>Your Rights</h4>
   <ul>
-    <li>Participation is voluntary. You can stop at any time.</li>
-    <li>Your decision will NOT affect your MY-CC membership or relationships.</li>
-    <li>Your name is collected only to match your before/after assessments, then deleted.</li>
-    <li>Your name and school will NEVER appear in any publication.</li>
-    <li>You are NOT being audio- or video-recorded.</li>
+    <li>Information that you are in this study will be kept a secret as much as possible.</li>
+    <li>You don&rsquo;t have to be in this study if you don&rsquo;t want to be.</li>
+    <li>You can change your mind at any time and leave the study at any time (for example, stop answering questions or doing what we have asked at any time) without any problem and without telling us why.</li>
   </ul>
-  <h4>Important</h4>
-  <p>Your parent or guardian must have already submitted the Parental Permission Form. If they have not, please let Dr. Qu know.</p>
-  <p>You reviewed the full informed consent/assent form on the LearnAI Course web app earlier in this session.</p>
+  <h4>Questions</h4>
+  <p>If you have any questions about this study, you can ask your parents or guardian, or talk to the person running this study, Dr. Weihao Qu, at 732-263-5396, or wqu@monmouth.edu</p>
+  <p>If you want to talk to someone about whether or not you have to be in this study, or about other things about this study that you don&rsquo;t want to talk over with your parents or the person running this study, you can contact the group at Monmouth University which makes sure that studies are ok for you to be in, called the &lsquo;Institutional Review Board (IRB)&rsquo; at irb@monmouth.edu, 732.263.5726.</p>
   <div class="consent-highlight">
-    <p><strong>By clicking &lsquo;I Agree&rsquo; below, you confirm that:</strong></p>
-    <ul style="margin-top:6px">
-      <li>Your parent or guardian has already submitted the Parental Permission Form.</li>
-      <li>You understand that participation is voluntary and you can stop at any time.</li>
-      <li>You agree to participate in this post-test.</li>
-    </ul>
-    <p style="margin-bottom:0">If you do not wish to participate, click &lsquo;I Do Not Agree.&rsquo;</p>
+    <p>If you electronically sign below or If you click &lsquo;I AGREE&rsquo;, it means that you have read this form and you would like to be in this study. We will give you a copy of the assent form for you to keep.</p>
+    <p style="margin-bottom:0">If you click &lsquo;I DO NOT AGREE&rsquo;, you will still go through the steps listed within the purpose of the study, but your data will not be used for research purpose.</p>
   </div>
-  <p style="font-size:.8rem;color:var(--text-light)"><strong>Questions?</strong> Email Dr. Qu at wqu@monmouth.edu or call 732-263-5396. For questions about your rights, contact the Monmouth University IRB at irb@monmouth.edu or 732-263-5726.</p>
   <div class="consent-btns">
-    <button class="btn btn-reject" onclick="handleConsent(false)">I Do Not Agree</button>
-    <button class="btn btn-primary" onclick="handleConsent(true)">I Agree</button>
+    <button class="btn btn-reject" onclick="handleConsent(false)">I DO NOT AGREE</button>
+    <button class="btn btn-primary" onclick="handleConsent(true)">I AGREE</button>
   </div>`;
 
 function showConsent(type){
   pendingTestType = type;
   const el = document.getElementById('consent-content');
-  el.innerHTML = type === 'pre' ? CONSENT_PRE_HTML : CONSENT_POST_HTML;
+  el.innerHTML = CONSENT_FORM_HTML;
   document.getElementById('consent-overlay').classList.remove('hidden');
 }
 
 function handleConsent(accepted){
   consentGiven = accepted;
-  const key = 'lai_hs_consent_' + pendingTestType;
+  const key = CONSENT_STORAGE_PREFIX + pendingTestType;
   localStorage.setItem(key, String(accepted));
   document.getElementById('consent-overlay').classList.add('hidden');
   // Proceed to the original chooseType flow
@@ -646,7 +614,7 @@ function showScreen(id){
 
 function chooseType(type){
   // Check if consent already given for this test type
-  const key = 'lai_hs_consent_' + type;
+  const key = CONSENT_STORAGE_PREFIX + type;
   const stored = localStorage.getItem(key);
   if(stored === null){
     // Show consent first
@@ -677,14 +645,13 @@ function proceedAfterConsent(type){
 }
 
 function startQuiz(){
-  const nickname = document.getElementById('inp-nickname').value.trim();
-  const birthmonth = document.getElementById('inp-birthmonth').value;
-  if(!nickname){
-    showToast('Please enter your nickname');
+  const privateCode = document.getElementById('inp-code').value.trim().toUpperCase();
+  if(!privateCode){
+    showToast('Please enter your private code');
     return;
   }
-  if(!birthmonth){
-    showToast('Please select your birth month');
+  if(!/^([0-9]|[1-9][0-9]|100)[A-Z]$/.test(privateCode)){
+    showToast('Use a code like 57R: number 0-100 plus one letter A-Z');
     return;
   }
   if(testType === 'pre'){
@@ -694,13 +661,7 @@ function startQuiz(){
       return;
     }
   }
-  // Generate participant ID: normalize (lowercase, alphanumeric only), strip formula chars
-  const cleanNick = nickname.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
-  if(!cleanNick){
-    showToast('Nickname must contain at least one letter or number');
-    return;
-  }
-  participantId = cleanNick + '-' + birthmonth;
+  participantId = privateCode;
   initShuffles();
   currentQ = 0;
   answers = new Array(6).fill(null);
