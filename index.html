@@ -108,6 +108,9 @@ p{line-height:1.5}
 .chooser-card .icon{font-size:2.4rem;margin-bottom:8px}
 .chooser-card h3{margin-bottom:4px}
 .chooser-card p{font-size:.8rem;color:var(--text-light)}
+.non-assent-info{display:none;width:100%;padding:14px 16px;border:1px solid #fecaca;border-radius:var(--radius-sm);background:#fff5f5;color:#7f1d1d;text-align:left;font-size:.86rem;line-height:1.5}
+.non-assent-info.active{display:block}
+.non-assent-info strong{display:block;margin-bottom:4px;color:#991b1b}
 
 /* Results */
 .score-circle{width:160px;height:160px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto;animation:popIn .5s ease;box-shadow:0 8px 32px rgba(13,148,136,.3)}
@@ -174,20 +177,20 @@ textarea:focus{outline:none;border-color:var(--primary)}
 .app-footer a:hover{text-decoration:underline}
 
 /* Consent Modal */
-.consent-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
-.consent-overlay.hidden{display:none}
-.consent-box{background:var(--surface);border-radius:var(--radius);max-width:640px;width:100%;max-height:90vh;overflow-y:auto;padding:28px 24px;box-shadow:var(--shadow-lg)}
-.consent-box h2{font-size:1.2rem;color:var(--primary);text-align:center;margin-bottom:4px}
-.consent-box h3{font-size:1rem;color:var(--text);text-align:center;margin-bottom:16px;font-weight:600}
-.consent-box h4{font-size:.95rem;color:var(--primary);margin:14px 0 6px;font-weight:700}
-.consent-box p,.consent-box li{font-size:.85rem;line-height:1.55;color:var(--text);margin-bottom:6px}
-.consent-box ul{margin:6px 0 10px 20px}
-.consent-box li{margin-bottom:3px}
-.consent-box .consent-highlight{background:rgba(13,148,136,.08);border:1px solid var(--primary);border-radius:var(--radius-sm);padding:12px 14px;margin:16px 0}
-.consent-box .consent-highlight p{font-size:.85rem;margin-bottom:4px}
-.consent-box .consent-highlight strong{color:var(--text)}
-.consent-btns{display:flex;gap:12px;margin-top:20px}
-.consent-btns .btn{flex:1;padding:14px;font-size:.95rem}
+.assent-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.assent-overlay.hidden{display:none}
+.assent-box{background:var(--surface);border-radius:var(--radius);max-width:640px;width:100%;max-height:90vh;overflow-y:auto;padding:28px 24px;box-shadow:var(--shadow-lg)}
+.assent-box h2{font-size:1.2rem;color:var(--primary);text-align:center;margin-bottom:4px}
+.assent-box h3{font-size:1rem;color:var(--text);text-align:center;margin-bottom:16px;font-weight:600}
+.assent-box h4{font-size:.95rem;color:var(--primary);margin:14px 0 6px;font-weight:700}
+.assent-box p,.assent-box li{font-size:.85rem;line-height:1.55;color:var(--text);margin-bottom:6px}
+.assent-box ul{margin:6px 0 10px 20px}
+.assent-box li{margin-bottom:3px}
+.assent-box .assent-highlight{background:rgba(13,148,136,.08);border:1px solid var(--primary);border-radius:var(--radius-sm);padding:12px 14px;margin:16px 0}
+.assent-box .assent-highlight p{font-size:.85rem;margin-bottom:4px}
+.assent-box .assent-highlight strong{color:var(--text)}
+.assent-btns{display:flex;gap:12px;margin-top:20px}
+.assent-btns .btn{flex:1;padding:14px;font-size:.95rem}
 .btn-reject{background:#ef4444;color:#fff}
 .btn-reject:hover{background:#dc2626}
 
@@ -200,9 +203,9 @@ textarea:focus{outline:none;border-color:var(--primary)}
 </head>
 <body>
 
-<!-- CONSENT OVERLAY (content set dynamically per test type) -->
-<div class="consent-overlay hidden" id="consent-overlay">
-  <div class="consent-box" id="consent-content"></div>
+<!-- ASSENT OVERLAY (content set dynamically per test type) -->
+<div class="assent-overlay hidden" id="assent-overlay">
+  <div class="assent-box" id="assent-content"></div>
 </div>
 
 <div class="app" id="app">
@@ -217,6 +220,10 @@ textarea:focus{outline:none;border-color:var(--primary)}
         <h1>AI Mastery<br>Assessment</h1>
         <p class="subtitle" style="margin-top:8px">5 real-world scenarios. One tap each.</p>
         <p class="subtitle" style="margin-top:4px">For high school AI workshop students only</p>
+      </div>
+      <div class="non-assent-info" id="non-assent-info" role="status">
+        <strong>You selected I DO NOT AGREE.</strong>
+        You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a research matching code, and do not complete the pre-test, post-test, or research surveys.
       </div>
       <div class="chooser-cards">
         <div class="chooser-card" onclick="chooseType('pre')">
@@ -506,12 +513,11 @@ const LEVELS = [
 const PRE_IDS  = ['s01','s02','s03','s04','s05','s06']; // one per category
 const POST_IDS = ['s07','s08','s09','s10','s11','s12']; // parallel form
 
-// ─── Consent / assent (HS version) ─────────────────────────────────────
-let consentGiven = null; // true, false, or null
-let pendingTestType = null; // set when consent is needed before proceeding
-const CONSENT_STORAGE_PREFIX = 'lai_hs_assent_20260714_';
+// ─── Student assent (HS version) ───────────────────────────────────────
+let assentGiven = null; // true, false, or null
+let pendingTestType = null; // set when assent is needed before proceeding
 
-const CONSENT_FORM_HTML = `
+const ASSENT_FORM_HTML = `
   <h2>Project Title: A Learning Platform on AI Education for High School Learners</h2>
   <h3>Principal Investigator (person running this study): Dr. Weihao Qu, wqu@monmouth.edu, 732-263-5396</h3>
   <p>You are being asked to be in a research study.</p>
@@ -548,29 +554,32 @@ const CONSENT_FORM_HTML = `
   <h4>Questions</h4>
   <p>If you have any questions about this study, you can ask your parents or guardian, or talk to the person running this study, Dr. Weihao Qu, at 732-263-5396, or wqu@monmouth.edu</p>
   <p>If you want to talk to someone about whether or not you have to be in this study, or about other things about this study that you don&rsquo;t want to talk over with your parents or the person running this study, you can contact the group at Monmouth University which makes sure that studies are ok for you to be in, called the &lsquo;Institutional Review Board (IRB)&rsquo; at irb@monmouth.edu, 732.263.5726.</p>
-  <div class="consent-highlight">
+  <div class="assent-highlight">
     <p>If you electronically sign below or If you click &lsquo;I AGREE&rsquo;, it means that you have read this form and you would like to be in this study. We will give you a copy of the assent form for you to keep.</p>
-    <p style="margin-bottom:0">If you click &lsquo;I DO NOT AGREE&rsquo;, you will still go through the steps listed within the purpose of the study, but your data will not be used for research purpose.</p>
+    <p style="margin-bottom:0">If you click &lsquo;I DO NOT AGREE&rsquo;, you are not taking part in the research surveys or tests. You may still join the educational AI training, but you will not create or use a research matching code and you will not complete the pre-test, post-test, or research surveys in this app.</p>
   </div>
-  <div class="consent-btns">
+  <div class="assent-btns">
     <button class="btn btn-reject" onclick="handleConsent(false)">I DO NOT AGREE</button>
     <button class="btn btn-primary" onclick="handleConsent(true)">I AGREE</button>
   </div>`;
 
 function showConsent(type){
   pendingTestType = type;
-  const el = document.getElementById('consent-content');
-  el.innerHTML = CONSENT_FORM_HTML;
-  document.getElementById('consent-overlay').classList.remove('hidden');
+  const el = document.getElementById('assent-content');
+  el.innerHTML = ASSENT_FORM_HTML;
+  document.getElementById('assent-overlay').classList.remove('hidden');
 }
 
 function handleConsent(accepted){
-  consentGiven = accepted;
-  const key = CONSENT_STORAGE_PREFIX + pendingTestType;
-  localStorage.setItem(key, String(accepted));
-  document.getElementById('consent-overlay').classList.add('hidden');
-  // Proceed to the original chooseType flow
-  proceedAfterConsent(pendingTestType);
+  assentGiven = accepted;
+  document.getElementById('assent-overlay').classList.add('hidden');
+  if(accepted){
+    proceedAfterConsent(pendingTestType);
+    return;
+  }
+  showNonAssentInfo();
+  resetResearchFlow();
+  showScreen('screen-chooser');
 }
 
 // ─── State ──────────────────────────────────────────────────────────────
@@ -581,6 +590,29 @@ let answers = [];
 let shuffledChoices = [];
 let likertVal = null;
 let participantId = '';
+
+function resetResearchFlow(){
+  testType = null;
+  activeScenarios = [];
+  currentQ = 0;
+  answers = [];
+  shuffledChoices = [];
+  likertVal = null;
+  participantId = '';
+  pendingTestType = null;
+  const codeInput = document.getElementById('inp-code');
+  if(codeInput) codeInput.value = '';
+}
+
+function showNonAssentInfo(){
+  const info = document.getElementById('non-assent-info');
+  if(info) info.classList.add('active');
+}
+
+function hideNonAssentInfo(){
+  const info = document.getElementById('non-assent-info');
+  if(info) info.classList.remove('active');
+}
 
 // ─── URL params ─────────────────────────────────────────────────────────
 (function checkParams(){
@@ -613,19 +645,18 @@ function showScreen(id){
 }
 
 function chooseType(type){
-  // Check if consent already given for this test type
-  const key = CONSENT_STORAGE_PREFIX + type;
-  const stored = localStorage.getItem(key);
-  if(stored === null){
-    // Show consent first
-    showConsent(type);
-    return;
-  }
-  consentGiven = stored === 'true';
-  proceedAfterConsent(type);
+  hideNonAssentInfo();
+  assentGiven = null;
+  showConsent(type);
 }
 
 function proceedAfterConsent(type){
+  if(assentGiven !== true){
+    showNonAssentInfo();
+    resetResearchFlow();
+    showScreen('screen-chooser');
+    return;
+  }
   testType = type;
   const ids = type === 'pre' ? PRE_IDS : POST_IDS;
   activeScenarios = ids.map(id => SCENARIOS.find(s => s.id === id));
@@ -645,6 +676,12 @@ function proceedAfterConsent(type){
 }
 
 function startQuiz(){
+  if(assentGiven !== true){
+    showNonAssentInfo();
+    resetResearchFlow();
+    showScreen('screen-chooser');
+    return;
+  }
   const privateCode = document.getElementById('inp-code').value.trim().toUpperCase();
   if(!privateCode){
     showToast('Please enter your private code');
@@ -852,7 +889,7 @@ function finishQuiz(){
 
   if(testType === 'pre'){
     document.getElementById('pre-analysis').innerHTML = analysis.html;
-    submitData(false);
+    if(!submitData(false)) return;
     showScreen('screen-pre-done');
   } else {
     buildResults();
@@ -949,17 +986,29 @@ function toggleReview(){
 
 // ─── Submit ─────────────────────────────────────────────────────────────
 function submitResults(){
+  if(assentGiven !== true){
+    showNonAssentInfo();
+    resetResearchFlow();
+    showScreen('screen-chooser');
+    return;
+  }
   if(!likertVal){
     showToast('Please rate your confidence (1-5)');
     return;
   }
-  submitData(true);
+  if(!submitData(true)) return;
   document.getElementById('btn-submit').textContent = 'Submitted!';
   document.getElementById('btn-submit').disabled = true;
   showToast('Results submitted successfully!');
 }
 
 function submitData(includePost){
+  if(assentGiven !== true){
+    showNonAssentInfo();
+    resetResearchFlow();
+    showScreen('screen-chooser');
+    return false;
+  }
   const bg = document.getElementById('inp-background').value;
   const total = answers.reduce((s, a) => s + a.score, 0);
 
@@ -973,7 +1022,8 @@ function submitData(includePost){
   const payload = {
     participant_id: participantId,
     test_type: testType,
-    consent: consentGiven === true ? 'yes' : 'no',
+    assent: 'yes',
+    consent: 'yes',
     coding_background: testType === 'pre' ? bg : '',
     timestamp: new Date().toISOString(),
     total_score: total,
@@ -1017,6 +1067,7 @@ function submitData(includePost){
   } else {
     console.log('Assessment payload (no script URL configured):', payload);
   }
+  return true;
 }
 
 // ─── Toast ──────────────────────────────────────────────────────────────

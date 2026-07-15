@@ -5,10 +5,10 @@
  *   participant_id is a private code (number 0-100 plus one letter A-Z,
  *   for example "57R"). Pre and Post are matched by participant_id.
  *
- * Consent handling:
- *   Pre-Test and Post-Test raw sheets keep every submission.
- *   The Paired research summary only includes a code when its latest
- *   pre and latest post submissions both have consent "yes".
+ * Assent handling:
+ *   Only affirmative student assent submissions are stored.
+ *   Non-assent requests return before spreadsheet access, sheet creation,
+ *   appendRow, raw data logging, rubric updates, or paired analysis.
  *
  * SETUP: Paste into Extensions -> Apps Script -> Deploy as Web App.
  */
@@ -25,7 +25,7 @@ var PRE_HEADERS = [
   's05_score', 's05_choice',
   's06_score', 's06_choice',
   'analysis',
-  'consent'
+  'assent'
 ];
 
 var POST_HEADERS = [
@@ -40,7 +40,7 @@ var POST_HEADERS = [
   's12_score', 's12_choice',
   'analysis',
   'likert_confidence', 'open_response',
-  'consent'
+  'assent'
 ];
 
 var PAIRED_HEADERS = [
@@ -79,7 +79,7 @@ function isValidParticipantId(value) {
   return /^([0-9]|[1-9][0-9]|100)[A-Z]$/.test(value);
 }
 
-function normalizeConsent(value) {
+function normalizeAssent(value) {
   var normalized = String(value || '').toLowerCase().trim();
   if (
     normalized === 'yes' ||
@@ -102,11 +102,20 @@ function timestampMs(value) {
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var assent = normalizeAssent(data.assent || data.consent);
+
+    if (assent !== 'yes') {
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          status: 'not_assented',
+          message: 'Student did not provide affirmative assent; no research survey/test data was recorded.'
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     var date = extractDate(data.timestamp);
     var level = getLevel(data.total_score);
     var participantId = normalizeParticipantId(data.participant_id);
-    var consent = normalizeConsent(data.consent);
 
     if (data.test_type !== 'pre' && data.test_type !== 'post') {
       return ContentService
@@ -120,6 +129,7 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetName = data.test_type === 'pre' ? 'Pre-Test' : 'Post-Test';
     var sheet = getOrCreateSheet(ss, sheetName,
       data.test_type === 'pre' ? PRE_HEADERS : POST_HEADERS);
@@ -137,7 +147,7 @@ function doPost(e) {
         data.s05_score, data.s05_choice,
         data.s06_score, data.s06_choice,
         data.analysis || '',
-        consent
+        assent
       ];
     } else {
       row = [
@@ -153,7 +163,7 @@ function doPost(e) {
         data.analysis || '',
         data.likert_confidence || '',
         data.open_response || '',
-        consent
+        assent
       ];
     }
 
@@ -221,7 +231,7 @@ function updatePairedSheet(ss) {
   // Index by participant_id (private code) - keep latest entry per id.
   // Pre columns: participant_id(0), timestamp(1), date(2), coding_bg(3), total(4), level(5),
   //              cat_foundations(6), cat_prompt(7), cat_evaluation(8), cat_ethics(9),
-  //              cat_collaboration(10), cat_tool(11), analysis(24), consent(25)
+  //              cat_collaboration(10), cat_tool(11), analysis(24), assent(25)
   var preMap = {};
   preData.forEach(function(row) {
     var id = normalizeParticipantId(row[0]);
@@ -229,7 +239,7 @@ function updatePairedSheet(ss) {
 
     if (!preMap[id] || timestampMs(row[1]) > timestampMs(preMap[id].timestamp)) {
       preMap[id] = {
-        consent: normalizeConsent(row[25]),
+        assent: normalizeAssent(row[25]),
         id: id, timestamp: row[1], date: row[2], coding_bg: row[3],
         total: row[4], level: row[5],
         foundations: row[6], prompt: row[7], evaluation: row[8], ethics: row[9], collaboration: row[10], tool: row[11]
@@ -239,7 +249,7 @@ function updatePairedSheet(ss) {
 
   // Post columns: participant_id(0), timestamp(1), date(2), total(3), level(4),
   //               cat_foundations(5)...cat_tool(10), s07..s12, analysis(23),
-  //               likert(24), open(25), consent(26)
+  //               likert(24), open(25), assent(26)
   var postMap = {};
   postData.forEach(function(row) {
     var id = normalizeParticipantId(row[0]);
@@ -247,7 +257,7 @@ function updatePairedSheet(ss) {
 
     if (!postMap[id] || timestampMs(row[1]) > timestampMs(postMap[id].timestamp)) {
       postMap[id] = {
-        consent: normalizeConsent(row[26]),
+        assent: normalizeAssent(row[26]),
         id: id, timestamp: row[1], date: row[2],
         total: row[3], level: row[4],
         foundations: row[5], prompt: row[6], evaluation: row[7], ethics: row[8], collaboration: row[9], tool: row[10],
@@ -268,10 +278,10 @@ function updatePairedSheet(ss) {
   pairedSheet.getRange(1, 1, 1, PAIRED_HEADERS.length).setFontWeight('bold');
   pairedSheet.setFrozenRows(1);
 
-  // Match by participant_id. Latest submission controls consent, so a later
-  // no/missing consent excludes that code instead of falling back to older yes rows.
+  // Match by participant_id. Rows without affirmative assent are excluded from
+  // research pairing, including any older rows captured before this guard existed.
   var pids = Object.keys(preMap).filter(function(pid) {
-    return postMap[pid] && preMap[pid].consent === 'yes' && postMap[pid].consent === 'yes';
+    return postMap[pid] && preMap[pid].assent === 'yes' && postMap[pid].assent === 'yes';
   }).sort();
   pids.forEach(function(pid) {
     var pre = preMap[pid];
@@ -338,8 +348,9 @@ function ensureRubricSheet(ss) {
   sheet.getRange(sheet.getLastRow(), 1).setFontWeight('bold');
   sheet.appendRow(['Pre and Post tests are matched by the private code students enter on every survey/test.']);
   sheet.appendRow(['Private code format: number 0-100 plus one letter A-Z, for example 57R.']);
-  sheet.appendRow(['Paired includes a code only when its latest pre and latest post submissions both have consent=yes.']);
-  sheet.appendRow(['A later consent=no or missing-consent submission excludes that code from Paired. Raw sheets remain append-only.']);
+  sheet.appendRow(['Only submissions with affirmative student assent are stored in the Pre-Test and Post-Test sheets.']);
+  sheet.appendRow(['Requests without affirmative assent return before spreadsheet access, sheet creation, appendRow, or raw data logging.']);
+  sheet.appendRow(['Rows without affirmative assent, including older rows from prior deployments, are excluded from Paired.']);
   sheet.appendRow([]);
 
   sheet.appendRow(['MASTERY LEVELS']);
