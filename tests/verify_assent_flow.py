@@ -222,6 +222,10 @@ def main() -> None:
         ),
         "The leave-study control is not available from every assented screen",
     )
+    require(
+        ".btn[hidden]{display:none!important}" in index_source,
+        "A hidden leave-study button can be exposed by the general .btn display rule",
+    )
 
     payload = extract(r"const payload = \{(.*?)\n  \};", index_source, "payload")
     require("assent: 'yes'" in payload, "Payload lacks affirmative assent")
