@@ -1,0 +1,36 @@
+Assent Form for Minor Subjects
+Project Title: A Learning Platform on AI Education for High School Learners
+IRB Protocol: FA2601
+Assent Version: FA2601-Assent-2026-08-21
+Principal Investigator (person running this study): Dr. Weihao Qu, wqu@monmouth.edu, 732-263-5396
+You are being asked to be in a research study.
+Purpose: My name is Dr. Weihao Qu, and I am doing a study to learn how a hands-on AI training session helps high school students learn about software engineering and AI tools (like ChatGPT, Claude, and GitHub Copilot). I want to see how your knowledge and your opinions about AI change before and after the session.
+What Will Be Done:
+If you agree, you will take part in one AI training session, either in person at Monmouth University or online by Zoom. The session will take about 60–90 minutes. Before you do any research surveys or tests, you will read this assent form and choose “I AGREE” or “I DO NOT AGREE.”
+If you choose “I AGREE,” you will:
+make up a secret study code, such as 57R, made from a number from 0 to 100 and one letter A-Z. Do not use your name, initials, birthday, phone number, school ID, nickname, or anything that identifies you. You will type the same code on each survey and test so your answers can be matched without using your name;
+complete a short pre-session attitude survey in Google Forms (about 5 minutes);
+take a short knowledge pre-test on the LearnAI Assessment HS web app (https://weihaoqu.github.io/learnai-assessment-hs/) (about 5 minutes);
+watch Dr. Qu present slides on the room display or by Zoom screen share;
+use the high-school LearnAI Course website (https://weihaoqu.github.io/learnai-course-hs/). You may see the HS Home page, Course 1 (https://weihaoqu.github.io/learnai-course-hs/claude-code-course.html), and Course 2 (https://weihaoqu.github.io/learnai-course-hs/agentic-engineering-quest.html). Dr. Qu will tell you which pages and activities to use during the live session;
+watch Dr. Qu demonstrate AI tools using Dr. Qu's own account, subscription, API access, or demonstration environment;
+take a short knowledge post-test on the LearnAI Assessment HS web app using the same code (about 5 minutes);
+complete a short post-session attitude survey in Google Forms (about 5 minutes); and
+receive a short debriefing at the end, where Dr. Qu explains the purpose of the study again and answers questions.
+You will use an internet-enabled device to open the study links. For an in-person session, you should bring your own laptop or device and charger because Monmouth University lab computers will not be used. For an online session, you will use your own device to join Zoom and open the study links. You do not need to create an AI account, log in to an AI tool, install software, enter payment information, buy a subscription, or use a personal API key to be in this study. You will not be asked to type your name, contact information, school ID, or other personal information into any AI tool. You will NOT be audio- or video-recorded. If Zoom is used, the Zoom session will not be recorded, and you do not have to show your full real name on Zoom. The study will not collect your school records or grades.
+Costs or Payments to You: You will not have to pay anything, and you won’t be paid for being in this study.
+Risks/Discomforts: There are no foreseeable risks beyond those of everyday life. You might feel a little frustrated when learning a new AI tool, but this is no greater than what you would feel during normal computer use.
+Benefits: There is no direct benefit to you. You may gain hands-on experience with AI tools for software engineering. By being in this study, you also help us learn how to design better AI learning programs for students.
+In Case of Injury: If you get hurt as a result of being in this study, your parents/ guardian have been told what to do. You can also tell Dr. Weihao Qu, at 732-263-5396, or wqu@monmouth.edu
+Your Rights:
+Information that you are in this study will be kept a secret as much as possible.
+You don’t have to be in this study if you don’t want to be.
+You can change your mind at any time and leave the study at any time (for example, stop answering questions or doing what we have asked at any time) without any problem and without telling us why.
+Your parent or guardian has already given permission, but you still get to choose whether you want to be in the research.
+If you do not want to be in the research, you can still stay for the educational AI training.
+You can skip any question or stop at any time.
+Questions:
+If you have any questions about this study, you can ask your parents or guardian, or talk to the person running this study, Dr. Weihao Qu, at 732-263-5396, or wqu@monmouth.edu
+If you want to talk to someone about whether or not you have to be in this study, or about other things about this study that you don’t want to talk over with your parents or the person running this study, you can contact the group at Monmouth University which makes sure that studies are ok for you to be in, called the ‘Institutional Review Board (IRB)’ at irb@monmouth.edu, 732.263.5726.
+If you click “I AGREE,” it means that you have read this form and would like to be in this research study. You may save or print a copy of this assent form to keep.
+If you click “I DO NOT AGREE,” you may still stay for the educational AI training, but you will not complete the research surveys or tests, you will not create a research matching code, and no research survey/test data will be collected from you.

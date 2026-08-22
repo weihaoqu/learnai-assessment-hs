@@ -13,6 +13,8 @@
  * SETUP: Paste into Extensions -> Apps Script -> Deploy as Web App.
  */
 
+var ASSENT_VERSION = 'FA2601-Assent-2026-08-21';
+
 // Column definitions
 var PRE_HEADERS = [
   'participant_id', 'timestamp', 'date', 'coding_background',
@@ -25,7 +27,7 @@ var PRE_HEADERS = [
   's05_score', 's05_choice',
   's06_score', 's06_choice',
   'analysis',
-  'assent'
+  'assent', 'assent_version'
 ];
 
 var POST_HEADERS = [
@@ -40,7 +42,7 @@ var POST_HEADERS = [
   's12_score', 's12_choice',
   'analysis',
   'likert_confidence', 'open_response',
-  'assent'
+  'assent', 'assent_version'
 ];
 
 var PAIRED_HEADERS = [
@@ -102,7 +104,7 @@ function timestampMs(value) {
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
-    var assent = normalizeAssent(data.assent || data.consent);
+    var assent = normalizeAssent(data.assent);
 
     if (assent !== 'yes') {
       return ContentService
@@ -113,9 +115,12 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
-    var date = extractDate(data.timestamp);
-    var level = getLevel(data.total_score);
-    var participantId = normalizeParticipantId(data.participant_id);
+    var assentVersion = String(data.assent_version || '').trim();
+    if (assentVersion !== ASSENT_VERSION) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: 'error', message: 'Invalid assent version' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
 
     if (data.test_type !== 'pre' && data.test_type !== 'post') {
       return ContentService
@@ -123,11 +128,15 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
+    var participantId = normalizeParticipantId(data.participant_id);
     if (!isValidParticipantId(participantId)) {
       return ContentService
         .createTextOutput(JSON.stringify({ status: 'error', message: 'Invalid participant code' }))
         .setMimeType(ContentService.MimeType.JSON);
     }
+
+    var date = extractDate(data.timestamp);
+    var level = getLevel(data.total_score);
 
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheetName = data.test_type === 'pre' ? 'Pre-Test' : 'Post-Test';
@@ -147,7 +156,7 @@ function doPost(e) {
         data.s05_score, data.s05_choice,
         data.s06_score, data.s06_choice,
         data.analysis || '',
-        assent
+        assent, assentVersion
       ];
     } else {
       row = [
@@ -163,7 +172,7 @@ function doPost(e) {
         data.analysis || '',
         data.likert_confidence || '',
         data.open_response || '',
-        assent
+        assent, assentVersion
       ];
     }
 
@@ -231,7 +240,7 @@ function updatePairedSheet(ss) {
   // Index by participant_id (private code) - keep latest entry per id.
   // Pre columns: participant_id(0), timestamp(1), date(2), coding_bg(3), total(4), level(5),
   //              cat_foundations(6), cat_prompt(7), cat_evaluation(8), cat_ethics(9),
-  //              cat_collaboration(10), cat_tool(11), analysis(24), assent(25)
+  //              cat_collaboration(10), cat_tool(11), analysis(24), assent(25), assent_version(26)
   var preMap = {};
   preData.forEach(function(row) {
     var id = normalizeParticipantId(row[0]);
@@ -249,7 +258,7 @@ function updatePairedSheet(ss) {
 
   // Post columns: participant_id(0), timestamp(1), date(2), total(3), level(4),
   //               cat_foundations(5)...cat_tool(10), s07..s12, analysis(23),
-  //               likert(24), open(25), assent(26)
+  //               likert(24), open(25), assent(26), assent_version(27)
   var postMap = {};
   postData.forEach(function(row) {
     var id = normalizeParticipantId(row[0]);

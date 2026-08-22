@@ -49,6 +49,8 @@ p{line-height:1.5}
 .btn-outline:hover{background:rgba(13,148,136,.06)}
 .btn-full{width:100%}
 .btn-lg{padding:16px 32px;font-size:1.1rem;border-radius:var(--radius)}
+.btn-leave{background:transparent;color:#991b1b;border:1px solid #fecaca;padding:9px 16px;font-size:.82rem}
+.btn-leave:hover{background:#fff5f5}
 
 /* Cards */
 .card{background:var(--surface);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
@@ -222,8 +224,8 @@ textarea:focus{outline:none;border-color:var(--primary)}
         <p class="subtitle" style="margin-top:4px">For high school AI workshop students only</p>
       </div>
       <div class="non-assent-info" id="non-assent-info" role="status">
-        <strong>You selected I DO NOT AGREE.</strong>
-        You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a research matching code, and do not complete the pre-test, post-test, or research surveys.
+        <strong id="non-assent-title">You selected I DO NOT AGREE.</strong>
+        <span id="non-assent-message">You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a research matching code, and do not complete the pre-test, post-test, or research surveys.</span>
       </div>
       <div class="chooser-cards">
         <div class="chooser-card" onclick="chooseType('pre')">
@@ -345,7 +347,10 @@ textarea:focus{outline:none;border-color:var(--primary)}
     </div>
   </div>
 
-  <footer class="app-footer">&copy; 2025 LearnAI HS Assessment</footer>
+  <footer class="app-footer">
+    <button class="btn btn-leave" id="btn-leave-study" type="button" onclick="withdrawFromStudy()" hidden>Leave Research Study</button>
+    <div style="margin-top:10px">&copy; 2025 LearnAI HS Assessment</div>
+  </footer>
 
 </div>
 
@@ -513,49 +518,68 @@ const PRE_IDS  = ['s01','s02','s03','s04','s05','s06']; // one per category
 const POST_IDS = ['s07','s08','s09','s10','s11','s12']; // parallel form
 
 // ─── Student assent (HS version) ───────────────────────────────────────
-let assentGiven = null; // true, false, or null
+const ASSENT_VERSION = 'FA2601-Assent-2026-08-21';
+const ASSENT_SESSION_KEY = `fa2601_assent_${ASSENT_VERSION}`;
+
+function hasSessionAssent(){
+  try {
+    return sessionStorage.getItem(ASSENT_SESSION_KEY) === 'yes';
+  } catch(e) {
+    return false;
+  }
+}
+
+let assentGiven = hasSessionAssent() ? true : null; // true, false, or null
 let pendingTestType = null; // set when assent is needed before proceeding
+syncLeaveButton();
 
 const ASSENT_FORM_HTML = `
-  <h2>Project Title: A Learning Platform on AI Education for High School Learners</h2>
-  <h3>Principal Investigator (person running this study): Dr. Weihao Qu, wqu@monmouth.edu, 732-263-5396</h3>
+  <h2>Assent Form for Minor Subjects</h2>
+  <p><strong>Project Title:</strong> A Learning Platform on AI Education for High School Learners</p>
+  <p><strong>IRB Protocol:</strong> FA2601</p>
+  <p><strong>Assent Version:</strong> ${ASSENT_VERSION}</p>
+  <p><strong>Principal Investigator (person running this study):</strong> Dr. Weihao Qu, wqu@monmouth.edu, 732-263-5396</p>
   <p>You are being asked to be in a research study.</p>
-  <h4>Purpose</h4>
+  <h4>Purpose:</h4>
   <p>My name is Dr. Weihao Qu, and I am doing a study to learn how a hands-on AI training session helps high school students learn about software engineering and AI tools (like ChatGPT, Claude, and GitHub Copilot). I want to see how your knowledge and your opinions about AI change before and after the session.</p>
-  <h4>What Will Be Done</h4>
-  <p>If you agree, you will take part in one AI training session, either in person at Monmouth University (Howard Hall 216 or 208) or online by Zoom.</p>
-  <p>During the session you will:</p>
+  <h4>What Will Be Done:</h4>
+  <p>If you agree, you will take part in one AI training session, either in person at Monmouth University or online by Zoom. The session will take about 60&ndash;90 minutes. Before you do any research surveys or tests, you will read this assent form and choose &ldquo;I AGREE&rdquo; or &ldquo;I DO NOT AGREE.&rdquo;</p>
+  <p>If you choose &ldquo;I AGREE,&rdquo; you will:</p>
   <ul>
-    <li>read this assent form and choose "I AGREE" or "I DO NOT AGREE" before any research surveys or tests.</li>
-    <li>make up a private random code (a number from 0 to 100 plus a letter from A to Z, like "57R") that you type on each survey and test so your answers can be matched;</li>
-    <li>complete a short attitude survey (about 5 minutes);</li>
-    <li>take a short knowledge pre-test (about 5 minutes);</li>
-    <li>follow a live demonstration and try hands-on AI activities with Dr. Qu (about 30-40 minutes);</li>
-    <li>take a short knowledge post-test (about 5 minutes);</li>
-    <li>complete a short attitude survey at the end (about 5 minutes).</li>
+    <li>make up a secret study code, such as 57R, made from a number from 0 to 100 and one letter A-Z. Do not use your name, initials, birthday, phone number, school ID, nickname, or anything that identifies you. You will type the same code on each survey and test so your answers can be matched without using your name;</li>
+    <li>complete a short pre-session attitude survey in Google Forms (about 5 minutes);</li>
+    <li>take a short knowledge pre-test on the LearnAI Assessment HS web app (<a href="https://weihaoqu.github.io/learnai-assessment-hs/">https://weihaoqu.github.io/learnai-assessment-hs/</a>) (about 5 minutes);</li>
+    <li>watch Dr. Qu present slides on the room display or by Zoom screen share;</li>
+    <li>use the high-school LearnAI Course website (<a href="https://weihaoqu.github.io/learnai-course-hs/">https://weihaoqu.github.io/learnai-course-hs/</a>). You may see the HS Home page, Course 1 (<a href="https://weihaoqu.github.io/learnai-course-hs/claude-code-course.html">https://weihaoqu.github.io/learnai-course-hs/claude-code-course.html</a>), and Course 2 (<a href="https://weihaoqu.github.io/learnai-course-hs/agentic-engineering-quest.html">https://weihaoqu.github.io/learnai-course-hs/agentic-engineering-quest.html</a>). Dr. Qu will tell you which pages and activities to use during the live session;</li>
+    <li>watch Dr. Qu demonstrate AI tools using Dr. Qu's own account, subscription, API access, or demonstration environment;</li>
+    <li>take a short knowledge post-test on the LearnAI Assessment HS web app using the same code (about 5 minutes);</li>
+    <li>complete a short post-session attitude survey in Google Forms (about 5 minutes); and</li>
+    <li>receive a short debriefing at the end, where Dr. Qu explains the purpose of the study again and answers questions.</li>
   </ul>
-  <p>You will use your own laptop, and you will NOT be audio- or video-recorded.</p>
-  <p>You will be in the study for about 60-90 minutes, all in this one session.</p>
-  <h4>Costs or Payments to You</h4>
+  <p>You will use an internet-enabled device to open the study links. For an in-person session, you should bring your own laptop or device and charger because Monmouth University lab computers will not be used. For an online session, you will use your own device to join Zoom and open the study links. You do not need to create an AI account, log in to an AI tool, install software, enter payment information, buy a subscription, or use a personal API key to be in this study. You will not be asked to type your name, contact information, school ID, or other personal information into any AI tool. You will NOT be audio- or video-recorded. If Zoom is used, the Zoom session will not be recorded, and you do not have to show your full real name on Zoom. The study will not collect your school records or grades.</p>
+  <h4>Costs or Payments to You:</h4>
   <p>You will not have to pay anything, and you won&rsquo;t be paid for being in this study.</p>
-  <h4>Risks/Discomforts</h4>
+  <h4>Risks/Discomforts:</h4>
   <p>There are no foreseeable risks beyond those of everyday life. You might feel a little frustrated when learning a new AI tool, but this is no greater than what you would feel during normal computer use.</p>
-  <h4>Benefits</h4>
+  <h4>Benefits:</h4>
   <p>There is no direct benefit to you. You may gain hands-on experience with AI tools for software engineering. By being in this study, you also help us learn how to design better AI learning programs for students.</p>
-  <h4>In Case of Injury</h4>
+  <h4>In Case of Injury:</h4>
   <p>If you get hurt as a result of being in this study, your parents/ guardian have been told what to do. You can also tell Dr. Weihao Qu, at 732-263-5396, or wqu@monmouth.edu</p>
-  <h4>Your Rights</h4>
+  <h4>Your Rights:</h4>
   <ul>
     <li>Information that you are in this study will be kept a secret as much as possible.</li>
     <li>You don&rsquo;t have to be in this study if you don&rsquo;t want to be.</li>
     <li>You can change your mind at any time and leave the study at any time (for example, stop answering questions or doing what we have asked at any time) without any problem and without telling us why.</li>
+    <li>Your parent or guardian has already given permission, but you still get to choose whether you want to be in the research.</li>
+    <li>If you do not want to be in the research, you can still stay for the educational AI training.</li>
+    <li>You can skip any question or stop at any time.</li>
   </ul>
-  <h4>Questions</h4>
+  <h4>Questions:</h4>
   <p>If you have any questions about this study, you can ask your parents or guardian, or talk to the person running this study, Dr. Weihao Qu, at 732-263-5396, or wqu@monmouth.edu</p>
   <p>If you want to talk to someone about whether or not you have to be in this study, or about other things about this study that you don&rsquo;t want to talk over with your parents or the person running this study, you can contact the group at Monmouth University which makes sure that studies are ok for you to be in, called the &lsquo;Institutional Review Board (IRB)&rsquo; at irb@monmouth.edu, 732.263.5726.</p>
   <div class="assent-highlight">
-    <p>If you electronically sign below or If you click &lsquo;I AGREE&rsquo;, it means that you have read this form and you would like to be in this study. We will give you a copy of the assent form for you to keep.</p>
-    <p style="margin-bottom:0">If you click &lsquo;I DO NOT AGREE&rsquo;, you are not taking part in the research surveys or tests. You may still join the educational AI training, but you will not create or use a research matching code and you will not complete the pre-test, post-test, or research surveys in this app.</p>
+    <p>If you click &ldquo;I AGREE,&rdquo; it means that you have read this form and would like to be in this research study. You may save or print a copy of this assent form to keep.</p>
+    <p style="margin-bottom:0">If you click &ldquo;I DO NOT AGREE,&rdquo; you may still stay for the educational AI training, but you will not complete the research surveys or tests, you will not create a research matching code, and no research survey/test data will be collected from you.</p>
   </div>
   <div class="assent-btns">
     <button class="btn btn-reject" onclick="handleConsent(false)">I DO NOT AGREE</button>
@@ -573,11 +597,25 @@ function handleConsent(accepted){
   assentGiven = accepted;
   document.getElementById('assent-overlay').classList.add('hidden');
   if(accepted){
+    try {
+      sessionStorage.setItem(ASSENT_SESSION_KEY, 'yes');
+    } catch(e){}
     proceedAfterConsent(pendingTestType);
     return;
   }
   showNonAssentInfo();
   resetResearchFlow();
+  showScreen('screen-chooser');
+}
+
+function withdrawFromStudy(){
+  if(activeSubmissionController) activeSubmissionController.abort();
+  try {
+    sessionStorage.removeItem(ASSENT_SESSION_KEY);
+  } catch(e){}
+  assentGiven = false;
+  resetResearchFlow();
+  showNonAssentInfo(true);
   showScreen('screen-chooser');
 }
 
@@ -589,6 +627,7 @@ let answers = [];
 let shuffledChoices = [];
 let likertVal = null;
 let participantId = '';
+let activeSubmissionController = null;
 
 function resetResearchFlow(){
   testType = null;
@@ -599,12 +638,27 @@ function resetResearchFlow(){
   likertVal = null;
   participantId = '';
   pendingTestType = null;
+  window._lastAnalysis = '';
   const codeInput = document.getElementById('inp-code');
   if(codeInput) codeInput.value = '';
+  const backgroundInput = document.getElementById('inp-background');
+  if(backgroundInput) backgroundInput.value = '';
+  const openInput = document.getElementById('inp-open');
+  if(openInput) openInput.value = '';
+  document.querySelectorAll('.likert-btn').forEach(btn => btn.classList.remove('selected'));
 }
 
-function showNonAssentInfo(){
+function showNonAssentInfo(withdrawn = false){
   const info = document.getElementById('non-assent-info');
+  const title = document.getElementById('non-assent-title');
+  const message = document.getElementById('non-assent-message');
+  if(withdrawn){
+    title.textContent = 'You left the research study.';
+    message.textContent = 'You may still join the educational AI training. This app cleared your current code and answers and will not show more research questions in this browser session. If you chose to leave while a submission was being sent, that submission may already have been recorded. You may contact Dr. Qu if you have questions.';
+  } else {
+    title.textContent = 'You selected I DO NOT AGREE.';
+    message.textContent = 'You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a research matching code, and do not complete the pre-test, post-test, or research surveys.';
+  }
   if(info) info.classList.add('active');
 }
 
@@ -637,15 +691,30 @@ function initShuffles(){
 }
 
 // ─── Screen switching ───────────────────────────────────────────────────
+function syncLeaveButton(){
+  const leaveButton = document.getElementById('btn-leave-study');
+  if(leaveButton) leaveButton.hidden = assentGiven !== true;
+}
+
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  syncLeaveButton();
   window.scrollTo({top:0, behavior:'instant'});
 }
 
 function chooseType(type){
   hideNonAssentInfo();
-  assentGiven = null;
+  if(assentGiven === true){
+    proceedAfterConsent(type);
+    return;
+  }
+  if(assentGiven === false){
+    showNonAssentInfo();
+    resetResearchFlow();
+    showScreen('screen-chooser');
+    return;
+  }
   showConsent(type);
 }
 
@@ -882,14 +951,26 @@ function generateAnalysis(){
 }
 
 // ─── Finish ─────────────────────────────────────────────────────────────
-function finishQuiz(){
+async function finishQuiz(){
   const analysis = generateAnalysis();
   window._lastAnalysis = analysis.plain; // store for submission
 
   if(testType === 'pre'){
     document.getElementById('pre-analysis').innerHTML = analysis.html;
-    if(!submitData(false)) return;
-    showScreen('screen-pre-done');
+    const finishButton = document.getElementById('btn-next');
+    finishButton.disabled = true;
+    finishButton.textContent = 'Submitting...';
+    try {
+      await submitData(false);
+      if(assentGiven !== true) return;
+      showScreen('screen-pre-done');
+    } catch(error) {
+      if(error.name === 'AbortError' && assentGiven !== true) return;
+      console.warn('Submit error:', error);
+      finishButton.disabled = false;
+      finishButton.textContent = 'Try Again';
+      showToast('Could not record your responses. Check your connection and try again.');
+    }
   } else {
     buildResults();
     document.getElementById('res-analysis').innerHTML = analysis.html;
@@ -984,7 +1065,7 @@ function toggleReview(){
 }
 
 // ─── Submit ─────────────────────────────────────────────────────────────
-function submitResults(){
+async function submitResults(){
   if(assentGiven !== true){
     showNonAssentInfo();
     resetResearchFlow();
@@ -995,18 +1076,29 @@ function submitResults(){
     showToast('Please rate your confidence (1-5)');
     return;
   }
-  if(!submitData(true)) return;
-  document.getElementById('btn-submit').textContent = 'Submitted!';
-  document.getElementById('btn-submit').disabled = true;
-  showToast('Results submitted successfully!');
+  const submitButton = document.getElementById('btn-submit');
+  submitButton.textContent = 'Submitting...';
+  submitButton.disabled = true;
+  try {
+    await submitData(true);
+    if(assentGiven !== true) return;
+    submitButton.textContent = 'Submitted!';
+    showToast('Results recorded successfully!');
+  } catch(error) {
+    if(error.name === 'AbortError' && assentGiven !== true) return;
+    console.warn('Submit error:', error);
+    submitButton.textContent = 'Try Again';
+    submitButton.disabled = false;
+    showToast('Could not record your responses. Check your connection and try again.');
+  }
 }
 
-function submitData(includePost){
+async function submitData(includePost){
   if(assentGiven !== true){
     showNonAssentInfo();
     resetResearchFlow();
     showScreen('screen-chooser');
-    return false;
+    throw new Error('Affirmative assent is required before submission.');
   }
   const bg = document.getElementById('inp-background').value;
   const total = answers.reduce((s, a) => s + a.score, 0);
@@ -1022,7 +1114,7 @@ function submitData(includePost){
     participant_id: participantId,
     test_type: testType,
     assent: 'yes',
-    consent: 'yes',
+    assent_version: ASSENT_VERSION,
     coding_background: testType === 'pre' ? bg : '',
     timestamp: new Date().toISOString(),
     total_score: total,
@@ -1048,25 +1140,33 @@ function submitData(includePost){
     payload.open_response = document.getElementById('inp-open').value.trim();
   }
 
-  // Save to localStorage as backup
-  const backupKey = `ai_assess_${testType}_${participantId}`;
-  try { localStorage.setItem(backupKey, JSON.stringify(payload)); } catch(e){}
-
   // POST to Google Apps Script
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYE-MArqkRyC_n-C-WHotNyb8H1ipbIrqvfQOi0qbszXti_2xo2pzJvBMWwJ01MbWMuw/exec';
-  if(SCRIPT_URL !== 'YOUR_GOOGLE_SCRIPT_URL'){
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(payload)
-    }).catch(err => {
-      console.warn('Submit error (data saved locally):', err);
-    });
-  } else {
-    console.log('Assessment payload (no script URL configured):', payload);
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0T56lxoJSiozLd3eW14gPWfg-9qJa6wexN49OrnWqwbXmLgW7vRlRVD11WxVBo678uQ/exec';
+  if(SCRIPT_URL === 'YOUR_GOOGLE_SCRIPT_URL'){
+    throw new Error('The assessment submission service is not configured.');
   }
-  return true;
+  const submissionController = new AbortController();
+  activeSubmissionController = submissionController;
+  try {
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload),
+      signal: submissionController.signal
+    });
+    if(!response.ok){
+      throw new Error(`Submission service returned HTTP ${response.status}.`);
+    }
+    const result = await response.json();
+    if(result.status !== 'success'){
+      throw new Error(result.message || 'The submission service rejected the response.');
+    }
+    return result;
+  } finally {
+    if(activeSubmissionController === submissionController){
+      activeSubmissionController = null;
+    }
+  }
 }
 
 // ─── Toast ──────────────────────────────────────────────────────────────
