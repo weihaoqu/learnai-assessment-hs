@@ -203,28 +203,13 @@ def main() -> None:
         "Version-scoped session assent is not read and written",
     )
     require("localStorage" not in index_source, "Assessment source still uses localStorage")
-    require(
-        "sessionStorage.removeItem(ASSENT_SESSION_KEY)" in index_source,
-        "Withdrawal does not clear the session assent",
-    )
-    require(
-        "function withdrawFromStudy()" in index_source
-        and "resetResearchFlow()" in extract_function("withdrawFromStudy", index_source),
-        "Withdrawal does not clear the in-memory research flow",
-    )
-    require(
-        "that submission may already have been recorded" in index_source,
-        "Withdrawal notice overpromises control of an in-flight submission",
-    )
-    require(
-        "leaveButton.hidden = assentGiven !== true" in extract_function(
-            "syncLeaveButton", index_source
-        ),
-        "The leave-study control is not available from every assented screen",
-    )
+    # No leave-study control (Cui, 2026-10-13): students kept taking the button
+    # for the next step. They can still stop at any time, as the assent form says.
+    for removed in ("Leave Research Study", "btn-leave-study", "withdrawFromStudy"):
+        require(removed not in index_source, f"The app still has a leave-study control: {removed!r}")
     require(
         ".btn[hidden]{display:none!important}" in index_source,
-        "A hidden leave-study button can be exposed by the general .btn display rule",
+        "A hidden button can be exposed by the general .btn display rule",
     )
 
     payload = extract(r"const payload = \{(.*?)\n  \};", index_source, "payload")
@@ -279,7 +264,7 @@ def main() -> None:
     print("PASS: accepted-view assent text and identifiers")
     print("PASS: once-per-session assent routing and browser-storage limits")
     print("PASS: versioned affirmative payload without redundant consent")
-    print("PASS: withdrawal and confirmed-submission safeguards")
+    print("PASS: no leave-study control; confirmed-submission safeguards")
     print("PASS: Apps Script validation order and row schemas")
     print("PASS: JavaScript syntax")
 
