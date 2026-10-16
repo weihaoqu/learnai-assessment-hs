@@ -254,9 +254,9 @@ textarea:focus{outline:none;border-color:var(--primary)}
     <div class="card" style="display:flex;flex-direction:column;gap:16px">
       <div class="input-group">
         <label for="inp-code">Your Private Code</label>
-        <input type="text" id="inp-code" placeholder="e.g., 57R" maxlength="4" autocapitalize="characters" autocomplete="off" spellcheck="false">
+        <input type="text" id="inp-code" placeholder="e.g., 57R" maxlength="3" autocapitalize="characters" autocomplete="off" spellcheck="false">
       </div>
-      <p style="font-size:.8rem;color:var(--text-light);text-align:center">Make up a number from 0 to 100 plus one letter A-Z, like <strong>57R</strong>. Use the same code on every survey and test.</p>
+      <p style="font-size:.8rem;color:var(--text-light);text-align:center">Make up a 2-digit number from 10 to 99 plus one letter A-Z, like <strong>57R</strong>. Use the same code on every survey and test.</p>
       <div class="input-group" id="bg-group">
         <label for="inp-background">Coding Background</label>
         <select id="inp-background">
@@ -543,7 +543,7 @@ const ASSENT_FORM_HTML = `
   <p>If you agree, you will take part in one AI training session, either in person at Monmouth University or online by Zoom. The session will take about 60&ndash;90 minutes. Before you do any research surveys or tests, you will read this assent form and choose &ldquo;I AGREE&rdquo; or &ldquo;I DO NOT AGREE.&rdquo;</p>
   <p>If you choose &ldquo;I AGREE,&rdquo; you will:</p>
   <ul>
-    <li>make up a Private Code, such as 57R, made from a number from 0 to 100 and one letter A-Z. Do not use your name, initials, birthday, phone number, school ID, nickname, or anything that identifies you. You will type the same code on each survey and test so your answers can be matched without using your name;</li>
+    <li>make up a Private Code, such as 57R, made from a 2-digit number from 10 to 99 and one letter A-Z. Do not use your name, initials, birthday, phone number, school ID, nickname, or anything that identifies you. You will type the same code on each survey and test so your answers can be matched without using your name;</li>
     <li>complete a short pre-session attitude survey in Google Forms (about 5 minutes);</li>
     <li>take a short knowledge pre-test on the LearnAI Assessment HS web app (<a href="https://weihaoqu.github.io/learnai-assessment-hs/">https://weihaoqu.github.io/learnai-assessment-hs/</a>) (about 5 minutes);</li>
     <li>watch Dr. Qu present slides on the room display or by Zoom screen share;</li>
@@ -730,8 +730,8 @@ function startQuiz(){
     showToast('Please enter your Private Code');
     return;
   }
-  if(!/^([0-9]|[1-9][0-9]|100)[A-Z]$/.test(privateCode)){
-    showToast('Use a code like 57R: number 0-100 plus one letter A-Z');
+  if(!/^[1-9][0-9][A-Z]$/.test(privateCode)){
+    showToast('Use a code like 57R: a 2-digit number from 10 to 99, then one letter A-Z');
     return;
   }
   if(testType === 'pre'){
