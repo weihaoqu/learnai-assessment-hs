@@ -224,7 +224,7 @@ textarea:focus{outline:none;border-color:var(--primary)}
       </div>
       <div class="non-assent-info" id="non-assent-info" role="status">
         <strong id="non-assent-title">You selected I DO NOT AGREE.</strong>
-        <span id="non-assent-message">You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a research matching code, and do not complete the pre-test, post-test, or research surveys.</span>
+        <span id="non-assent-message">You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a Private Code, and do not complete the pre-test, post-test, or research surveys.</span>
       </div>
       <div class="chooser-cards">
         <div class="chooser-card" onclick="chooseType('pre')">
@@ -543,7 +543,7 @@ const ASSENT_FORM_HTML = `
   <p>If you agree, you will take part in one AI training session, either in person at Monmouth University or online by Zoom. The session will take about 60&ndash;90 minutes. Before you do any research surveys or tests, you will read this assent form and choose &ldquo;I AGREE&rdquo; or &ldquo;I DO NOT AGREE.&rdquo;</p>
   <p>If you choose &ldquo;I AGREE,&rdquo; you will:</p>
   <ul>
-    <li>make up a secret study code, such as 57R, made from a number from 0 to 100 and one letter A-Z. Do not use your name, initials, birthday, phone number, school ID, nickname, or anything that identifies you. You will type the same code on each survey and test so your answers can be matched without using your name;</li>
+    <li>make up a Private Code, such as 57R, made from a number from 0 to 100 and one letter A-Z. Do not use your name, initials, birthday, phone number, school ID, nickname, or anything that identifies you. You will type the same code on each survey and test so your answers can be matched without using your name;</li>
     <li>complete a short pre-session attitude survey in Google Forms (about 5 minutes);</li>
     <li>take a short knowledge pre-test on the LearnAI Assessment HS web app (<a href="https://weihaoqu.github.io/learnai-assessment-hs/">https://weihaoqu.github.io/learnai-assessment-hs/</a>) (about 5 minutes);</li>
     <li>watch Dr. Qu present slides on the room display or by Zoom screen share;</li>
@@ -576,7 +576,7 @@ const ASSENT_FORM_HTML = `
   <p>If you want to talk to someone about whether or not you have to be in this study, or about other things about this study that you don&rsquo;t want to talk over with your parents or the person running this study, you can contact the group at Monmouth University which makes sure that studies are ok for you to be in, called the &lsquo;Institutional Review Board (IRB)&rsquo; at irb@monmouth.edu, 732.263.5726.</p>
   <div class="assent-highlight">
     <p>If you click &ldquo;I AGREE,&rdquo; it means that you have read this form and would like to be in this research study. You may save or print a copy of this assent form to keep.</p>
-    <p style="margin-bottom:0">If you click &ldquo;I DO NOT AGREE,&rdquo; you may still stay for the educational AI training, but you will not complete the research surveys or tests, you will not create a research matching code, and no research survey/test data will be collected from you.</p>
+    <p style="margin-bottom:0">If you click &ldquo;I DO NOT AGREE,&rdquo; you may still stay for the educational AI training, but you will not complete the research surveys or tests, you will not create a Private Code, and no research survey/test data will be collected from you.</p>
   </div>
   <div class="assent-btns">
     <button class="btn btn-reject" onclick="handleConsent(false)">I DO NOT AGREE</button>
@@ -639,7 +639,7 @@ function showNonAssentInfo(){
   const title = document.getElementById('non-assent-title');
   const message = document.getElementById('non-assent-message');
   title.textContent = 'You selected I DO NOT AGREE.';
-  message.textContent = 'You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a research matching code, and do not complete the pre-test, post-test, or research surveys.';
+  message.textContent = 'You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a Private Code, and do not complete the pre-test, post-test, or research surveys.';
   if(info) info.classList.add('active');
 }
 
@@ -727,7 +727,7 @@ function startQuiz(){
   }
   const privateCode = document.getElementById('inp-code').value.trim().toUpperCase();
   if(!privateCode){
-    showToast('Please enter your private code');
+    showToast('Please enter your Private Code');
     return;
   }
   if(!/^([0-9]|[1-9][0-9]|100)[A-Z]$/.test(privateCode)){
