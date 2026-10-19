@@ -52,8 +52,6 @@ p{line-height:1.5}
 .btn-saved,.btn-saved:disabled{background:var(--primary-dark);color:#fff;cursor:default;transform:none}
 .btn-full{width:100%}
 .btn-lg{padding:16px 32px;font-size:1.1rem;border-radius:var(--radius)}
-.btn-leave{background:transparent;color:#991b1b;border:1px solid #fecaca;padding:9px 16px;font-size:.82rem}
-.btn-leave:hover{background:#fff5f5}
 
 /* Cards */
 .card{background:var(--surface);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
@@ -293,7 +291,6 @@ p{line-height:1.5}
   </div>
 
   <footer class="app-footer">
-    <button class="btn btn-leave" id="btn-leave-study" type="button" onclick="withdrawFromStudy()" hidden>Leave Research Study</button>
     <div style="margin-top:10px">&copy; 2025 LearnAI HS Assessment</div>
   </footer>
 
@@ -420,7 +417,6 @@ function hasSessionAssent(){
 
 let assentGiven = hasSessionAssent() ? true : null; // true, false, or null
 let pendingTestType = null; // set when assent is needed before proceeding
-syncLeaveButton();
 
 const ASSENT_FORM_HTML = `
   <h2>Assent Form for Minor Subjects</h2>
@@ -497,22 +493,10 @@ function handleConsent(accepted){
   showScreen('screen-chooser');
 }
 
-function withdrawFromStudy(){
-  if(activeSubmissionController) activeSubmissionController.abort();
-  try {
-    sessionStorage.removeItem(ASSENT_SESSION_KEY);
-  } catch(e){}
-  assentGiven = false;
-  resetResearchFlow();
-  showNonAssentInfo(true);
-  showScreen('screen-chooser');
-}
-
 // ─── State ──────────────────────────────────────────────────────────────
 let testType = null; // 'pre' or 'post'
 let draft = null; // {identity, submission_id, client_started_at, code, background, cursor, answers, frozen}
 let formItems = []; // [{id, stem, options}] for the current stage, in presentation order
-let activeSubmissionController = null;
 let flowGeneration = 0; // bumped on reset; a save that started under an older value is ignored
 let saveInFlight = false;
 
@@ -538,17 +522,12 @@ function clearSavedMarkers(){
   delete document.body.dataset.fa2601Saved;
 }
 
-function showNonAssentInfo(withdrawn = false){
+function showNonAssentInfo(){
   const info = document.getElementById('non-assent-info');
   const title = document.getElementById('non-assent-title');
   const message = document.getElementById('non-assent-message');
-  if(withdrawn){
-    title.textContent = 'You left the research study.';
-    message.textContent = 'You may still join the educational AI training. This app cleared your current code and answers and will not show more research questions in this browser session. If you chose to leave while a submission was being sent, that submission may already have been recorded. You may contact Dr. Qu if you have questions.';
-  } else {
-    title.textContent = 'You selected I DO NOT AGREE.';
-    message.textContent = 'You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a research matching code, and do not complete the pre-test, post-test, or research surveys.';
-  }
+  title.textContent = 'You selected I DO NOT AGREE.';
+  message.textContent = 'You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a research matching code, and do not complete the pre-test, post-test, or research surveys.';
   if(info) info.classList.add('active');
 }
 
@@ -705,15 +684,9 @@ function isValidDraft(saved, stage){
 }
 
 // ─── Screen switching ───────────────────────────────────────────────────
-function syncLeaveButton(){
-  const leaveButton = document.getElementById('btn-leave-study');
-  if(leaveButton) leaveButton.hidden = assentGiven !== true;
-}
-
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  syncLeaveButton();
   window.scrollTo({top:0, behavior:'instant'});
 }
 
@@ -1102,7 +1075,6 @@ async function submitData(endpointUrl, body, submissionId){
     throw new Error('Affirmative assent is required before submission.');
   }
   const submissionController = new AbortController();
-  activeSubmissionController = submissionController;
   let timedOut = false;
   const timer = setTimeout(() => {
     timedOut = true;
@@ -1146,9 +1118,6 @@ async function submitData(endpointUrl, body, submissionId){
     return {kind:'success', duplicate: result.duplicate === true};
   } finally {
     clearTimeout(timer);
-    if(activeSubmissionController === submissionController){
-      activeSubmissionController = null;
-    }
   }
 }
 

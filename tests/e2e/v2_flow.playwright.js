@@ -10,8 +10,8 @@
 //   POST /exec            -> the real v2 Apps Script running against a fake spreadsheet
 //   GET  /debug/rows      -> the fake spreadsheet's rows (JSON)
 //   POST /debug/inject    -> {mode: 'fail_before'|'fail_after'|'busy'|'none', times}
-// It never contacts any other service. Scenario F stubs /exec in the browser (page.route) and
-// therefore never reaches even the local server.
+// It never contacts any other service. Scenarios H and I stub /exec in the browser (page.route) and
+// therefore never reach even the local server.
 //
 // Returns a JSON-serializable summary: {ok, passed, failed, failures, checks, errors, submissions, rows_shape}.
 (async function fa2601V2Flow(page, base = 'http://127.0.0.1:8799') {
@@ -441,64 +441,24 @@
     check('post 0A: exactly one row', (await rowCount(id, 'post')) === 1);
   });
 
-  await scenario('E withdrawal mid-test clears drafts', async () => {
+  await scenario('E no leave-study control on any screen', async () => {
+    // Removed (Cui 2026-10-13, Q 2026-10-19): students took it for the next step.
+    // Students can still stop at any time by closing the page, as the assent says.
     await freshSession('/?type=pre');
+    const noLeave = async where => check(`no leave control: ${where}`,
+      (await page.locator('#btn-leave-study').count()) === 0
+      && !((await page.textContent('body')) || '').includes('Leave Research Study'));
+    await noLeave('assent');
     await agree();
     await startStage('7A');
-    const n = inst.pairs.length;
-    await choose('A');
-    await page.click('#btn-next');
-    if (n > 1) await choose('B');
-    const before = await storage();
-    check('draft present mid-test', Boolean(before['fa2601_v2_draft_pre']));
-    check('leave button visible mid-test', await page.isVisible('#btn-leave-study'));
-    await page.click('#btn-leave-study');
-    await page.waitForSelector('#non-assent-info.active', { timeout: 5000 });
-    const info = ((await page.textContent('#non-assent-info')) || '').trim();
-    check('withdrawal notice shown', info.includes('You left the research study.') && info.includes('that submission may already have been recorded'));
-    const after = await storage();
-    check('withdrawal deletes both drafts and the assent flag',
-      !('fa2601_v2_draft_pre' in after) && !('fa2601_v2_draft_post' in after) && !('fa2601_assent_FA2601-Assent-2026-08-21' in after), Object.keys(after));
-    check('leave button hidden after withdrawal', await page.isHidden('#btn-leave-study'));
-    await page.locator('.chooser-card').first().click();
-    check('no research questions after withdrawal', (await activeScreen()) === 'screen-chooser' && await page.isVisible('#non-assent-info'));
-    await noScoreText('after withdrawal');
-  });
-
-  await scenario('F withdrawal during an in-flight save ignores the late response', async () => {
-    await freshSession('/?type=post');
-    await agree();
-    await startStage('12B');
+    await noLeave('question');
     const n = inst.pairs.length;
     for (let i = 0; i < n; i++) await page.click('#btn-skip');
     await page.waitForSelector('#screen-review.active');
-    let stubbedId = null;
-    const handler = async route => {
-      try { stubbedId = JSON.parse(route.request().postData() || '{}').submission_id; } catch (e) { stubbedId = null; }
-      await sleep(2500);
-      try {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ status: 'success', receipt: stubbedId, duplicate: false })
-        });
-      } catch (e) { /* request already aborted by withdrawal */ }
-    };
-    await page.route('**/exec', handler);
-    try {
-      await page.click('#btn-finish');
-      await page.waitForSelector('#screen-save.active', { timeout: 5000 });
-      await page.click('#btn-leave-study');
-      await sleep(3500);
-      check('late success after withdrawal is ignored (chooser stays)', (await activeScreen()) === 'screen-chooser');
-      check('late success after withdrawal: no saved flag', (await savedFlag()) === null);
-      check('late success after withdrawal: no #btn-submit', (await btnSubmitCount()) === 0);
-      check('late success after withdrawal: drafts gone', !Object.keys(await storage()).some(k => k.startsWith('fa2601_v2_draft_')));
-    } finally {
-      await page.unroute('**/exec', handler);
-    }
-    submissions.post_12B_stubbed = stubbedId;
-    if (stubbedId) check('stubbed request never reached the server', (await rowCount(stubbedId, 'post')) === 0);
+    await noLeave('review');
+    await page.click('#btn-finish');
+    await page.waitForSelector('#screen-pre-done.active', { timeout: SAVE_TIMEOUT });
+    await noLeave('pre done');
   });
 
   // H and I stub /exec inside the browser (page.route), so nothing reaches any server.

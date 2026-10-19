@@ -263,28 +263,13 @@ def main() -> None:
         "Version-scoped session assent is not read and written",
     )
     require("localStorage" not in index_source, "Assessment source still uses localStorage")
-    require(
-        "sessionStorage.removeItem(ASSENT_SESSION_KEY)" in index_source,
-        "Withdrawal does not clear the session assent",
-    )
-    require(
-        "function withdrawFromStudy()" in index_source
-        and "resetResearchFlow()" in extract_function("withdrawFromStudy", index_source),
-        "Withdrawal does not clear the in-memory research flow",
-    )
-    require(
-        "that submission may already have been recorded" in index_source,
-        "Withdrawal notice overpromises control of an in-flight submission",
-    )
-    require(
-        "leaveButton.hidden = assentGiven !== true" in extract_function(
-            "syncLeaveButton", index_source
-        ),
-        "The leave-study control is not available from every assented screen",
-    )
+    # No leave-study control (Cui, 2026-10-13; Q, 2026-10-19): students took the
+    # button for the next step. They can still stop at any time, as the assent says.
+    for removed in ("Leave Research Study", "btn-leave-study", "withdrawFromStudy", "syncLeaveButton"):
+        require(removed not in index_source, f"The app still has a leave-study control: {removed!r}")
     require(
         ".btn[hidden]{display:none!important}" in index_source,
-        "A hidden leave-study button can be exposed by the general .btn display rule",
+        "A hidden button can be exposed by the general .btn display rule",
     )
 
     payload = extract(r"const payload = \{(.*?)\n  \};", index_source, "payload")
@@ -322,10 +307,6 @@ def main() -> None:
         "Submission is not a text/plain POST of the frozen body",
     )
     require(
-        "activeSubmissionController = submissionController" in submit_data,
-        "Submission is not abortable by withdrawal",
-    )
-    require(
         "result.receipt !== submissionId" in submit_data,
         "Success is accepted without a matching receipt",
     )
@@ -348,7 +329,7 @@ def main() -> None:
     )
     require(
         save_loop.count("generation !== flowGeneration || assentGiven !== true") >= 3,
-        "A late response can act after withdrawal or reset",
+        "A late response can act after a reset",
     )
     require(
         "const BUSY_RETRY_DELAYS_MS = [1000, 2000, 4000];" in index_source,
@@ -396,12 +377,12 @@ def main() -> None:
     )
     require('id="screen-pre-done"' in index_source, "#screen-pre-done is missing")
 
-    # Drafts: version-free per-stage keys, cleared by withdrawal/reset.
+    # Drafts: version-free per-stage keys, cleared by a reset.
     require("const DRAFT_KEY_PREFIX = 'fa2601_v2_draft_';" in index_source, "Draft key changed")
     reset_flow = extract_function("resetResearchFlow", index_source)
     require(
         "flowGeneration++" in reset_flow and "STAGES.forEach(removeDraft)" in reset_flow,
-        "Withdrawal/reset does not delete both drafts and invalidate in-flight saves",
+        "A reset does not delete both drafts and invalidate in-flight saves",
     )
     require(
         "crypto.randomUUID()" in index_source,
@@ -531,7 +512,7 @@ def main() -> None:
     print("PASS: accepted-view assent text and identifiers")
     print("PASS: once-per-session assent routing and browser-storage limits")
     print("PASS: v2 payload fields, versioned affirmative assent, no consent or totals")
-    print("PASS: withdrawal, frozen-body retries, and confirmed-submission safeguards")
+    print("PASS: no leave-study control; frozen-body retries and confirmed-submission safeguards")
     print("PASS: checklist markers only after confirmed success; no scores in the app")
     print("PASS: items/config load order, committed mode (local or prod), and form-order vectors")
     print("PASS: legacy v1 Apps Script validation order and row schemas")
