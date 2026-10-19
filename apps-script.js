@@ -108,12 +108,13 @@ var LOCK_TIMEOUT_MS = 10000;
 
 // Destination allowlist: sha256 (hex) of the UTF-8 Sheet ID, keyed by the ENV
 // Script Property. Hashes only, never IDs. See SETUP step 3.
-//   prod  = the production FA2601 Sheet.
+//   prod  = the FA2601 v2 data Sheet (a new Sheet, 2026-10-19; the first group's
+//           Sheet is separate and never runs this script).
 //   test  = the test Sheet (placeholder until Q pastes its hash).
 //   local = the string LOCAL-FAKE-SHEET, used only by tests/dev_server.mjs.
 //           A real Google Sheet ID never hashes to this value.
 var ALLOWED_SHEET_SHA256 = {
-  prod: 'd2781f320b6604922af30d734bfd42075d8cffbe444ea5c0971950249e4efa14',
+  prod: 'b9830e58a6cf6f4c55a41aa9294ea1b7645aaf2e1710839915b70cb146451da7',
   test: 'REPLACE_WITH_SHA256_OF_TEST_SHEET_ID',
   local: '45d95ac175ed00d9ef5b65b9ebf3cd90b27c1d69aba1574352c41f7c17a5c02a'
 };
