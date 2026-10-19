@@ -402,6 +402,17 @@ def main() -> None:
     # Generated items and settings.
     items = load_browser_global(ITEMS_PATH, "FA2601_ITEMS")
     require("keys" not in items, "items-v2.js exposes answer keys to the browser")
+    # GitHub Pages publishes every file it is not told to exclude; apps-script.js has the keys.
+    # Exact match: any other key (include:, keep_files:, ...) or change fails until reviewed here.
+    # Trim only ASCII spaces, tabs and CR: other whitespace (e.g. U+00A0) is part of a YAML value.
+    pages_lines = [
+        line.rstrip(" \t\r") for line in (ROOT / "_config.yml").read_text(encoding="utf-8").split("\n")
+        if line.strip(" \t\r") and not line.lstrip(" \t").startswith("#")
+    ]
+    require(
+        pages_lines == ["exclude:"] + [f"  - {name}" for name in ("apps-script.js", "legacy", "tests", "tools", "docs")],
+        "_config.yml must exclude exactly apps-script.js, legacy, tests, tools and docs from the published site",
+    )
     require(
         "keys" not in ITEMS_PATH.read_text(encoding="utf-8").split("\n", 1)[1],
         "items-v2.js mentions answer keys",
