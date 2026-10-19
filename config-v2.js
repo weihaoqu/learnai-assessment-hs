@@ -2,9 +2,10 @@
 // mode 'local': saves only on 127.0.0.1/localhost, to the same-origin path endpoints.local.
 // mode 'test':  saves to endpoints.test; refused while it is the placeholder or the prod URL.
 // mode 'prod':  saves to endpoints.prod; refused unless the page is on weihaoqu.github.io.
-// The committed default stays 'local'. Changing it is part of the approved cutover, not a routine edit.
+// main publishes this file, so after the cutover (2026-10-19) it is committed in 'prod'.
+// To run the local tests, set 'local' in your working copy and do not commit it.
 window.FA2601_CONFIG = {
-  mode: 'local',
+  mode: 'prod',
   selection: 'C6',
   endpoints: {
     local: '/exec',

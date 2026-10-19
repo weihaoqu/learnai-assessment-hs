@@ -428,7 +428,8 @@ def main() -> None:
     version = items.get("instrument_version")
     require(isinstance(version, str) and version, "items-v2.js has no instrument_version")
     config = load_browser_global(CONFIG_PATH, "FA2601_CONFIG")
-    require(config.get("mode") == "local", "Committed config-v2.js is not in local mode")
+    # main publishes 'prod'; 'local' is for local test runs. 'test' is never committed.
+    require(config.get("mode") in ("local", "prod"), "Committed config-v2.js is not in local or prod mode")
     require(config.get("selection") in items.get("selections", {}), "Configured selection is missing")
     endpoints = config.get("endpoints", {})
     require(
@@ -532,7 +533,7 @@ def main() -> None:
     print("PASS: v2 payload fields, versioned affirmative assent, no consent or totals")
     print("PASS: withdrawal, frozen-body retries, and confirmed-submission safeguards")
     print("PASS: checklist markers only after confirmed success; no scores in the app")
-    print("PASS: items/config load order, local default mode, and form-order vectors")
+    print("PASS: items/config load order, committed mode (local or prod), and form-order vectors")
     print("PASS: legacy v1 Apps Script validation order and row schemas")
     print("PASS: JavaScript syntax")
 
