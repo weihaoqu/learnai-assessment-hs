@@ -1,0 +1,10 @@
+# GitHub Pages builds this site with Jekyll and publishes every file unless it is
+# excluded here. apps-script.js holds the answer keys for server-side scoring; it
+# runs in Google Apps Script, so the student site never serves it. The other
+# folders are for development only.
+exclude:
+  - apps-script.js
+  - legacy
+  - tests
+  - tools
+  - docs

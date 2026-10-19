@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Mastery Assessment</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -11,14 +11,14 @@
   --accent:#f59e0b;--accent-light:#fbbf24;
   --bg:#f0fdf4;--surface:#fff;--text:#1e293b;--text-light:#64748b;
   --danger:#ef4444;--success:#22c55e;
-  --cat-foundations:#6366f1;--cat-prompt:#f59e0b;--cat-evaluation:#10b981;
-  --cat-ethics:#ec4899;--cat-collaboration:#8b5cf6;--cat-tool:#0ea5e9;
   --radius:16px;--radius-sm:10px;
   --shadow:0 4px 24px rgba(0,0,0,.08);
   --shadow-lg:0 8px 40px rgba(0,0,0,.12);
+  --banner-h:0px;
 }
 html{font-size:16px;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden;padding-top:var(--banner-h)}
+[hidden]{display:none!important}
 
 /* Layout */
 .app{max-width:480px;margin:0 auto;padding:16px;min-height:100dvh;display:flex;flex-direction:column}
@@ -27,10 +27,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 @keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
-@keyframes countUp{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
-@keyframes barGrow{from{width:0}to{width:var(--bar-w)}}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@media (prefers-reduced-motion:reduce){.screen,.done-icon{animation:none}}
 
 /* Typography */
 h1{font-size:1.6rem;font-weight:800;line-height:1.2}
@@ -38,20 +35,23 @@ h2{font-size:1.3rem;font-weight:700}
 h3{font-size:1.1rem;font-weight:600}
 p{line-height:1.5}
 .subtitle{color:var(--text-light);font-size:.9rem}
+[tabindex="-1"]:focus{outline:none}
 
 /* Buttons */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 28px;border:none;border-radius:var(--radius-sm);font-size:1rem;font-weight:600;cursor:pointer;transition:all .2s;-webkit-appearance:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 28px;border:none;border-radius:var(--radius-sm);font-size:1rem;font-weight:600;cursor:pointer;transition:all .2s;-webkit-appearance:none;font-family:inherit}
 .btn[hidden]{display:none!important}
 .btn:active{transform:scale(.97)}
+.btn:focus-visible,.choice-btn:focus-visible,.chooser-card:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .btn-primary{background:var(--primary);color:#fff}
 .btn-primary:hover{background:var(--primary-dark)}
 .btn-primary:disabled{background:#94a3b8;cursor:not-allowed;transform:none}
 .btn-outline{background:transparent;color:var(--primary);border:2px solid var(--primary)}
 .btn-outline:hover{background:rgba(13,148,136,.06)}
+.btn-skip{background:transparent;color:var(--text);border:2px solid #cbd5e1}
+.btn-skip:hover{background:#f8fafc}
+.btn-saved,.btn-saved:disabled{background:var(--primary-dark);color:#fff;cursor:default;transform:none}
 .btn-full{width:100%}
 .btn-lg{padding:16px 32px;font-size:1.1rem;border-radius:var(--radius)}
-.btn-leave{background:transparent;color:#991b1b;border:1px solid #fecaca;padding:9px 16px;font-size:.82rem}
-.btn-leave:hover{background:#fff5f5}
 
 /* Cards */
 .card{background:var(--surface);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
@@ -59,8 +59,8 @@ p{line-height:1.5}
 /* Inputs */
 .input-group{display:flex;flex-direction:column;gap:6px}
 .input-group label{font-weight:600;font-size:.9rem}
-.input-group input,.input-group select{padding:12px 16px;border:2px solid #e2e8f0;border-radius:var(--radius-sm);font-size:1rem;transition:border-color .2s;background:#fff}
-.input-group input:focus,.input-group select:focus{outline:none;border-color:var(--primary)}
+.input-group input,.input-group select{padding:12px 16px;border:2px solid #e2e8f0;border-radius:var(--radius-sm);font-size:1rem;transition:border-color .2s;background:#fff;font-family:inherit;color:var(--text)}
+.input-group input:focus,.input-group select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(13,148,136,.25)}
 
 /* Progress Bar */
 .progress-wrap{display:flex;align-items:center;gap:12px}
@@ -68,31 +68,17 @@ p{line-height:1.5}
 .progress-track{flex:1;height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden}
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary-light));border-radius:99px;transition:width .4s ease}
 
-/* Category Badge */
-.badge{display:inline-flex;align-items:center;padding:4px 12px;border-radius:99px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#fff}
-.badge-foundations{background:var(--cat-foundations)}
-.badge-prompt{background:var(--cat-prompt);color:var(--text)}
-.badge-evaluation{background:var(--cat-evaluation)}
-.badge-ethics{background:var(--cat-ethics)}
-.badge-collaboration{background:var(--cat-collaboration)}
-.badge-tool{background:var(--cat-tool)}
-
-/* Scenario Image */
-.scenario-img-wrap{border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);background:#e2e8f0;aspect-ratio:16/10;position:relative}
-.scenario-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
-.scenario-img-wrap .img-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:.9rem;background:linear-gradient(135deg,#e2e8f0,#f1f5f9);background-size:200% 100%;animation:shimmer 2s infinite linear}
-
 /* Question */
-.question-text{font-size:1.05rem;font-weight:600;line-height:1.4}
+.question-text{font-size:1.05rem;font-weight:600;line-height:1.45}
 
 /* Choice Buttons */
 .choices{display:flex;flex-direction:column;gap:10px}
-.choice-btn{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;border:2px solid #e2e8f0;border-radius:var(--radius-sm);background:#fff;font-size:.95rem;text-align:left;cursor:pointer;transition:all .2s;min-height:52px;-webkit-appearance:none;line-height:1.3}
+.choice-btn{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;border:2px solid #e2e8f0;border-radius:var(--radius-sm);background:#fff;font-size:.95rem;font-family:inherit;color:var(--text);text-align:left;cursor:pointer;transition:all .2s;min-height:52px;-webkit-appearance:none;line-height:1.3}
 .choice-btn:active{transform:scale(.98)}
 .choice-btn .choice-letter{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;color:var(--text-light);transition:all .2s}
 .choice-btn .choice-text{flex:1;font-weight:500}
-.choice-btn.selected{border-color:var(--primary);background:rgba(13,148,136,.06)}
-.choice-btn.selected .choice-letter{background:var(--primary);color:#fff}
+.choice-btn[aria-checked="true"]{border-color:var(--primary);background:rgba(13,148,136,.06)}
+.choice-btn[aria-checked="true"] .choice-letter{background:var(--primary);color:#fff}
 
 /* Nav Buttons */
 .nav-row{display:flex;gap:12px;padding-top:8px}
@@ -103,76 +89,43 @@ p{line-height:1.5}
 .hero-img{width:100%;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
 .hero-img img{width:100%;height:auto;display:block}
 .chooser-cards{display:flex;gap:16px;width:100%}
-.chooser-card{flex:1;padding:0;border-radius:var(--radius);border:2px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .2s;text-align:center;overflow:hidden}
+.chooser-card{flex:1;display:block;padding:0;border-radius:var(--radius);border:2px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .2s;text-align:center;overflow:hidden;font-family:inherit;color:var(--text);-webkit-appearance:none}
 .chooser-card:hover{border-color:var(--primary);box-shadow:var(--shadow)}
 .chooser-card:active{transform:scale(.97)}
 .chooser-card img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
-.chooser-card .card-body{padding:12px 10px 14px}
-.chooser-card .icon{font-size:2.4rem;margin-bottom:8px}
-.chooser-card h3{margin-bottom:4px}
-.chooser-card p{font-size:.8rem;color:var(--text-light)}
+.chooser-card .card-body{display:block;padding:12px 10px 14px}
+.chooser-card .card-title{display:block;font-size:1.1rem;font-weight:600;margin-bottom:4px}
+.chooser-card .card-note{display:block;font-size:.8rem;color:var(--text-light)}
 .non-assent-info{display:none;width:100%;padding:14px 16px;border:1px solid #fecaca;border-radius:var(--radius-sm);background:#fff5f5;color:#7f1d1d;text-align:left;font-size:.86rem;line-height:1.5}
 .non-assent-info.active{display:block}
 .non-assent-info strong{display:block;margin-bottom:4px;color:#991b1b}
+.notice-error{width:100%;padding:14px 16px;border:1px solid #fecaca;border-radius:var(--radius-sm);background:#fff5f5;color:#7f1d1d;text-align:left;font-size:.9rem;line-height:1.5}
 
-/* Results */
-.score-circle{width:160px;height:160px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto;animation:popIn .5s ease;box-shadow:0 8px 32px rgba(13,148,136,.3)}
-.score-circle .score-num{font-size:2.8rem;font-weight:900;color:#fff;line-height:1}
-.score-circle .score-of{font-size:.85rem;color:rgba(255,255,255,.8);font-weight:600}
-.level-label{text-align:center;font-size:1.2rem;font-weight:700;padding:4px 20px;border-radius:99px;display:inline-block;margin:0 auto}
-.level-1{background:#fee2e2;color:#dc2626}
-.level-2{background:#fef3c7;color:#d97706}
-.level-3{background:#d1fae5;color:#059669}
-.level-4{background:#c7d2fe;color:#4f46e5}
+/* Review */
+.review-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.review-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid #e2e8f0;border-radius:var(--radius-sm);background:#fff}
+.review-label{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.review-q{font-weight:700;font-size:.95rem}
+.review-status{font-size:.85rem;font-weight:600;color:var(--text-light)}
+.review-status.is-answered{color:var(--primary-dark)}
+.review-change{padding:8px 16px;font-size:.85rem;min-height:44px}
 
-/* Skill Bars */
-.skill-bars{display:flex;flex-direction:column;gap:14px}
-.skill-bar-item{display:flex;flex-direction:column;gap:4px}
-.skill-bar-header{display:flex;justify-content:space-between;align-items:center}
-.skill-bar-name{font-size:.85rem;font-weight:600}
-.skill-bar-score{font-size:.8rem;font-weight:700;color:var(--text-light)}
-.skill-bar-track{height:10px;background:#e2e8f0;border-radius:99px;overflow:hidden}
-.skill-bar-fill{height:100%;border-radius:99px;animation:barGrow .8s ease forwards;width:0}
+/* Save */
+.save-card{display:flex;flex-direction:column;gap:14px;text-align:center}
+.save-card.is-problem{border:1px solid #fecaca;background:#fff5f5}
+.save-card.is-problem h2{color:#991b1b}
 
-/* Expandable Review */
-.review-section{border-top:1px solid #e2e8f0;padding-top:16px}
-.review-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:.95rem;color:var(--primary);border:none;background:none;padding:8px 0;width:100%}
-.review-toggle .arrow{transition:transform .3s;font-size:.8rem}
-.review-toggle.open .arrow{transform:rotate(90deg)}
-.review-items{display:none;flex-direction:column;gap:12px;padding-top:12px}
-.review-items.open{display:flex}
-.review-item{padding:12px;border-radius:var(--radius-sm);background:#f8fafc;border-left:4px solid var(--primary)}
-.review-item .ri-q{font-weight:600;font-size:.85rem;margin-bottom:4px}
-.review-item .ri-your{font-size:.8rem;color:var(--text-light)}
-.review-item .ri-best{font-size:.8rem;color:var(--success);font-weight:600}
-
-/* Likert */
-.likert-row{display:flex;gap:8px;justify-content:center}
-.likert-btn{width:48px;height:48px;border-radius:50%;border:2px solid #e2e8f0;background:#fff;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
-.likert-btn.selected{border-color:var(--primary);background:var(--primary);color:#fff}
-.likert-labels{display:flex;justify-content:space-between;font-size:.7rem;color:var(--text-light);padding:0 4px}
-
-/* Textarea */
-textarea{width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:var(--radius-sm);font-size:1rem;font-family:inherit;resize:vertical;min-height:80px;transition:border-color .2s}
-textarea:focus{outline:none;border-color:var(--primary)}
-
-/* Pre-test done */
+/* Done */
 .done-icon{font-size:4rem;text-align:center;animation:popIn .5s ease}
 .done-text{text-align:center;font-size:1.1rem;line-height:1.5}
 
 /* Toast */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1e293b;color:#fff;padding:12px 24px;border-radius:var(--radius-sm);font-size:.9rem;font-weight:600;opacity:0;transition:all .3s;z-index:99;pointer-events:none}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1e293b;color:#fff;padding:12px 24px;border-radius:var(--radius-sm);font-size:.9rem;font-weight:600;opacity:0;transition:all .3s;z-index:99;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* Analysis */
-.analysis-card{background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:1px solid #bbf7d0;border-radius:var(--radius);padding:20px}
-.analysis-card h3{margin-bottom:10px;color:var(--primary-dark)}
-.analysis-text{font-size:.9rem;line-height:1.65;color:var(--text)}
-.analysis-text strong{color:var(--primary-dark)}
-.strength-tag{display:inline-block;padding:3px 10px;border-radius:99px;font-size:.75rem;font-weight:600;margin:2px 4px 2px 0}
-.strength-tag.high{background:#d1fae5;color:#059669}
-.strength-tag.mid{background:#fef3c7;color:#d97706}
-.strength-tag.low{background:#fee2e2;color:#dc2626}
+/* Mode banner (local/test builds) */
+.mode-banner{position:fixed;top:0;left:0;right:0;z-index:1000;background:#b45309;color:#fff;text-align:center;font-size:.85rem;font-weight:800;letter-spacing:.3px;line-height:1.35;padding:6px 12px}
+.mode-banner.is-error{background:#991b1b}
 
 /* Footer */
 .app-footer{margin-top:auto;padding:16px 0 8px;text-align:center;font-size:.75rem;color:var(--text-light);border-top:1px solid #e2e8f0}
@@ -180,7 +133,7 @@ textarea:focus{outline:none;border-color:var(--primary)}
 .app-footer a:hover{text-decoration:underline}
 
 /* Consent Modal */
-.assent-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.assent-overlay{position:fixed;inset:var(--banner-h) 0 0 0;background:rgba(0,0,0,.7);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
 .assent-overlay.hidden{display:none}
 .assent-box{background:var(--surface);border-radius:var(--radius);max-width:640px;width:100%;max-height:90vh;overflow-y:auto;padding:28px 24px;box-shadow:var(--shadow-lg)}
 .assent-box h2{font-size:1.2rem;color:var(--primary);text-align:center;margin-bottom:4px}
@@ -200,11 +153,13 @@ textarea:focus{outline:none;border-color:var(--primary)}
 /* Responsive */
 @media(min-width:600px){
   .app{padding:24px}
-  .scenario-img-wrap{aspect-ratio:16/9}
 }
 </style>
 </head>
 <body>
+
+<!-- MODE BANNER (shown in local/test modes, or when saving is turned off) -->
+<div class="mode-banner" id="mode-banner" role="note" hidden></div>
 
 <!-- ASSENT OVERLAY (content set dynamically per test type) -->
 <div class="assent-overlay hidden" id="assent-overlay">
@@ -221,28 +176,29 @@ textarea:focus{outline:none;border-color:var(--primary)}
       </div>
       <div>
         <h1>AI Mastery<br>Assessment</h1>
-        <p class="subtitle" style="margin-top:8px">5 real-world scenarios. One tap each.</p>
+        <p class="subtitle" style="margin-top:8px" id="chooser-sub">Short questions. One tap each.</p>
         <p class="subtitle" style="margin-top:4px">For high school AI workshop students only</p>
       </div>
       <div class="non-assent-info" id="non-assent-info" role="status">
         <strong id="non-assent-title">You selected I DO NOT AGREE.</strong>
         <span id="non-assent-message">You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a research matching code, and do not complete the pre-test, post-test, or research surveys.</span>
       </div>
-      <div class="chooser-cards">
-        <div class="chooser-card" onclick="chooseType('pre')">
-          <img src="images/landing-pretest.png" alt="Pre-Test">
-          <div class="card-body">
-            <h3>Pre-Test</h3>
-            <p>Before your session</p>
-          </div>
-        </div>
-        <div class="chooser-card" onclick="chooseType('post')">
-          <img src="images/landing-posttest.png" alt="Post-Test">
-          <div class="card-body">
-            <h3>Post-Test</h3>
-            <p>After your session</p>
-          </div>
-        </div>
+      <div class="notice-error" id="startup-error" role="alert" hidden></div>
+      <div class="chooser-cards" id="chooser-cards">
+        <button class="chooser-card" type="button" onclick="chooseType('pre')">
+          <img src="images/landing-pretest.png" alt="">
+          <span class="card-body">
+            <span class="card-title">Pre-Test</span>
+            <span class="card-note">Before your session</span>
+          </span>
+        </button>
+        <button class="chooser-card" type="button" onclick="chooseType('post')">
+          <img src="images/landing-posttest.png" alt="">
+          <span class="card-body">
+            <span class="card-title">Post-Test</span>
+            <span class="card-note">After your session</span>
+          </span>
+        </button>
       </div>
     </div>
   </div>
@@ -251,272 +207,201 @@ textarea:focus{outline:none;border-color:var(--primary)}
   <div class="screen" id="screen-welcome">
     <div style="text-align:center;padding-top:16px">
       <h1 id="welcome-title">Before We Start</h1>
-      <p class="subtitle" style="margin-top:6px" id="welcome-sub">6 quick questions about using AI (~3 min)</p>
+      <p class="subtitle" style="margin-top:6px" id="welcome-sub">Short questions</p>
+      <p class="subtitle" id="draft-notice" role="status" hidden></p>
     </div>
     <div class="card" style="display:flex;flex-direction:column;gap:16px">
       <div class="input-group">
         <label for="inp-code">Your Private Code</label>
-        <input type="text" id="inp-code" placeholder="e.g., 57R" maxlength="4" autocapitalize="characters" autocomplete="off" spellcheck="false">
+        <input type="text" id="inp-code" placeholder="e.g., 57R" maxlength="4" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-describedby="code-help">
       </div>
-      <p style="font-size:.8rem;color:var(--text-light);text-align:center">Make up a number from 0 to 100 plus one letter A-Z, like <strong>57R</strong>. Use the same code on every survey and test.</p>
+      <p id="code-help" style="font-size:.8rem;color:var(--text-light);text-align:center">Make up a number from 0 to 100 plus one letter A-Z, like <strong>57R</strong>. Use the same code on every survey and test.</p>
       <div class="input-group" id="bg-group">
-        <label for="inp-background">Coding Background</label>
+        <label for="inp-background">Coding Background (optional)</label>
         <select id="inp-background">
-          <option value="">Select one...</option>
+          <option value="">Select one…</option>
           <option value="none">No experience</option>
-          <option value="beginner">Beginner (some HTML/CSS)</option>
-          <option value="intermediate">Intermediate (built small projects)</option>
-          <option value="advanced">Advanced (professional dev)</option>
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
+          <option value="prefer_not">Prefer not to say</option>
         </select>
       </div>
-      <button class="btn btn-primary btn-full btn-lg" id="btn-start" onclick="startQuiz()">Start Assessment</button>
+      <p style="font-size:.8rem;color:var(--text-light);text-align:center">One question per screen. You can skip any question.</p>
+      <button class="btn btn-primary btn-full btn-lg" id="btn-start" type="button" onclick="startQuiz()">Start Assessment</button>
     </div>
   </div>
 
   <!-- SCREEN: Question -->
   <div class="screen" id="screen-question">
     <div class="progress-wrap">
-      <span class="progress-label" id="q-counter">Q1 of 10</span>
-      <div class="progress-track"><div class="progress-fill" id="q-progress" style="width:10%"></div></div>
+      <span class="progress-label" id="q-counter">Question 1 of 1</span>
+      <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="q-progress" style="width:0%"></div></div>
     </div>
-    <div id="q-badge"></div>
-    <div class="scenario-img-wrap">
-      <div class="img-placeholder" id="q-img-placeholder">Loading...</div>
-      <img id="q-img" src="" alt="Scenario illustration" loading="lazy" onload="this.previousElementSibling.style.display='none'" onerror="this.previousElementSibling.textContent='Image not found'">
-    </div>
-    <p class="question-text" id="q-text"></p>
-    <div class="choices" id="q-choices"></div>
+    <p class="question-text" id="q-text" tabindex="-1"></p>
+    <div class="choices" id="q-choices" role="radiogroup" aria-labelledby="q-text"></div>
     <div class="nav-row">
-      <button class="btn btn-outline" id="btn-back" onclick="goBack()">Back</button>
-      <button class="btn btn-primary" id="btn-next" onclick="goNext()" disabled>Next</button>
+      <button class="btn btn-outline" id="btn-back" type="button" onclick="goBack()">Back</button>
+      <button class="btn btn-primary" id="btn-next" type="button" onclick="goNext()" disabled>Next</button>
+    </div>
+    <button class="btn btn-skip btn-full" id="btn-skip" type="button" onclick="skipQuestion()">Skip this question</button>
+  </div>
+
+  <!-- SCREEN: Review -->
+  <div class="screen" id="screen-review">
+    <div style="text-align:center;padding-top:8px">
+      <h1 id="review-title" tabindex="-1">Review</h1>
+      <p class="subtitle" style="margin-top:6px">Check your answers. You can change any question before you save.</p>
+    </div>
+    <div class="card">
+      <ul class="review-list" id="review-list"></ul>
+    </div>
+    <div class="notice-error" id="review-error" role="alert" hidden></div>
+    <button class="btn btn-primary btn-full btn-lg" id="btn-finish" type="button" onclick="finishAndSave()">Finish and save</button>
+  </div>
+
+  <!-- SCREEN: Saving -->
+  <div class="screen" id="screen-save">
+    <div class="card save-card" id="save-card">
+      <div id="save-status" role="status" aria-live="polite">
+        <h2 id="save-title">Saving your answers…</h2>
+        <p id="save-message" style="margin-top:10px">Please keep this page open.</p>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" id="btn-retry" type="button" onclick="retrySave()" hidden>Try again</button>
     </div>
   </div>
 
-  <!-- SCREEN: Pre-test done -->
+  <!-- SCREEN: Pre-test saved -->
   <div class="screen" id="screen-pre-done">
     <div style="display:flex;flex-direction:column;align-items:center;gap:20px;padding-top:24px">
-      <div class="done-icon">&#9989;</div>
-      <h1 style="text-align:center">You're All Set!</h1>
-      <p class="done-text">Thank you for completing the pre-assessment.<br><strong>Your session will begin now.</strong></p>
-      <div class="analysis-card" id="pre-analysis" style="width:100%"></div>
-      <p class="subtitle">Your responses have been recorded.</p>
+      <div class="done-icon" aria-hidden="true">&#9989;</div>
+      <h1 id="pre-done-title" tabindex="-1" style="text-align:center">Thank You!</h1>
+      <p class="done-text">Your answers were recorded.<br><strong>Your session will begin now.</strong></p>
     </div>
   </div>
 
-  <!-- SCREEN: Post-test results -->
-  <div class="screen" id="screen-results">
-    <div style="text-align:center;padding-top:8px">
-      <p class="subtitle">Your AI Mastery Score</p>
-    </div>
-    <div class="score-circle">
-      <span class="score-num" id="res-score">0</span>
-      <span class="score-of">out of 24</span>
-    </div>
-    <div style="text-align:center">
-      <span class="level-label" id="res-level"></span>
-    </div>
-
-    <!-- Analysis -->
-    <div class="analysis-card" id="res-analysis"></div>
-
-    <div class="card">
-      <h3 style="margin-bottom:14px">Skill Breakdown</h3>
-      <div class="skill-bars" id="res-skills"></div>
-    </div>
-
-    <!-- Review -->
-    <div class="card review-section">
-      <button class="review-toggle" id="review-toggle" onclick="toggleReview()">
-        <span class="arrow">&#9654;</span> Review Your Answers
-      </button>
-      <div class="review-items" id="review-items"></div>
-    </div>
-
-    <!-- Likert + Open -->
-    <div class="card" style="display:flex;flex-direction:column;gap:16px">
-      <h3>Two More Quick Questions</h3>
-      <div>
-        <p style="font-size:.9rem;font-weight:600;margin-bottom:8px">How confident are you using AI independently now?</p>
-        <div class="likert-row" id="likert-row"></div>
-        <div class="likert-labels"><span>Not at all</span><span>Very confident</span></div>
-      </div>
-      <div class="input-group">
-        <label for="inp-open">What was the most useful thing you learned today?</label>
-        <textarea id="inp-open" placeholder="Type your answer..."></textarea>
-      </div>
-      <button class="btn btn-primary btn-full btn-lg" id="btn-submit" onclick="submitResults()">Submit</button>
+  <!-- SCREEN: Post-test saved (the checklist status button is added by markSaved only) -->
+  <div class="screen" id="screen-post-done">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:20px;padding-top:24px;width:100%">
+      <div class="done-icon" aria-hidden="true">&#9989;</div>
+      <h1 id="post-done-title" tabindex="-1" style="text-align:center">Thank You!</h1>
+      <p class="done-text">Your answers were recorded.</p>
+      <div id="post-done-status" style="width:100%"></div>
     </div>
   </div>
 
   <footer class="app-footer">
-    <button class="btn btn-leave" id="btn-leave-study" type="button" onclick="withdrawFromStudy()" hidden>Leave Research Study</button>
     <div style="margin-top:10px">&copy; 2025 LearnAI HS Assessment</div>
   </footer>
 
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="items-v2.js?v=draft-0.3&amp;h=8e58e4b26e8c"></script>
+<script src="config-v2.js?v=draft-0.3&amp;h=8e58e4b26e8c"></script>
 <script>
-// ─── Data ───────────────────────────────────────────────────────────────
-const SCENARIOS = [
-  // ── PRE-TEST ──────────────────────────────────────────────────────────
-  // Correct positions: B, C, A, D, B, D  (distributed evenly)
-  {
-    id:'s01', cat:'foundations', catLabel:'AI Foundations', badge:'badge-foundations',
-    img:'images/scenarios/s01-foundations.png',
-    q:'A manager asks why a chatbot gave two different budget explanations from the same spreadsheet. What response best explains the issue?',
-    choices:[
-      {letter:'A', text:'The model probably used different hidden sources, so compare both outputs against the spreadsheet', score:2},
-      {letter:'B', text:'The question left room for interpretation, so constrain calculations and request reproducible steps', score:4},
-      {letter:'C', text:'The spreadsheet likely changed between attempts, even if nobody intentionally edited the file', score:1},
-      {letter:'D', text:'The model may sample differently, so lower randomness and rerun the exact same prompt again', score:3}
-    ]
-  },
-  {
-    id:'s02', cat:'prompt', catLabel:'Prompt Engineering', badge:'badge-prompt',
-    img:'images/scenarios/s02-prompt.png',
-    q:'You need AI to draft three versions of a donor email for different audiences. What instruction is most likely to produce useful first drafts?',
-    choices:[
-      {letter:'A', text:'Ask for three drafts, each with audience, tone, length, and donation amount clearly specified', score:3},
-      {letter:'B', text:'Ask for the best donor email possible, then edit whichever parts feel generic or off-target', score:1},
-      {letter:'C', text:'Provide audience profiles, required facts, forbidden claims, and a comparison table for tradeoffs', score:4},
-      {letter:'D', text:'Give one sample email and ask the model to make three similar versions with minor adjustments', score:2}
-    ]
-  },
-  {
-    id:'s03', cat:'evaluation', catLabel:'Critical Evaluation', badge:'badge-evaluation',
-    img:'images/scenarios/s03-evaluation.png',
-    q:'AI extracts six action items from a meeting transcript, and one seems unfamiliar. What should you do first?',
-    choices:[
-      {letter:'A', text:'Search the transcript for supporting language, then mark unsupported items for human review', score:4},
-      {letter:'B', text:'Ask the model to explain why it included that particular action item in more detail', score:2},
-      {letter:'C', text:'Compare the item with speaker names and timestamps if the tool provides that metadata', score:3},
-      {letter:'D', text:'Remove the unfamiliar item, since action lists should contain only remembered decisions from meetings', score:1}
-    ]
-  },
-  {
-    id:'s04', cat:'ethics', catLabel:'Ethics & Safety', badge:'badge-ethics',
-    img:'images/scenarios/s04-ethics.png',
-    q:'A nonprofit wants to paste volunteer notes into a public chatbot to summarize service needs. What is the best next step?',
-    choices:[
-      {letter:'A', text:'Use the chatbot because volunteer notes are operational records, not formal client records', score:1},
-      {letter:'B', text:'Remove names and addresses, then summarize only the remaining service request details safely', score:3},
-      {letter:'C', text:'Ask volunteers for written consent, because permission helps but rarely resolves confidentiality alone', score:2},
-      {letter:'D', text:'Classify sensitive fields first, then choose an approved tool and minimum necessary text to share', score:4}
-    ]
-  },
-  {
-    id:'s05', cat:'collaboration', catLabel:'Human-AI Collaboration', badge:'badge-collaboration',
-    img:'images/scenarios/s05-collaboration.png',
-    q:'A team uses AI to prepare a grant proposal under a tight deadline. Which workflow best preserves quality?',
-    choices:[
-      {letter:'A', text:'Let AI draft sections after the team agrees on claims, evidence, and evaluation criteria together', score:3},
-      {letter:'B', text:'Assign humans the argument and evidence map, then use AI for bounded drafting of sections', score:4},
-      {letter:'C', text:'Have AI generate the full proposal, then assign reviewers to improve weak sections before submission', score:2},
-      {letter:'D', text:'Divide the proposal among staff and use AI only for grammar checking at the very end', score:1}
-    ]
-  },
-  {
-    id:'s06', cat:'tool', catLabel:'Tool Selection', badge:'badge-tool',
-    img:'images/scenarios/s06-tool.png',
-    q:'You need totals from identical tables across eighty scanned invoices. Which tool choice is strongest?',
-    choices:[
-      {letter:'A', text:'Upload the invoices to a chatbot and ask it to total each visible table one by one', score:2},
-      {letter:'B', text:'Use OCR first, then manually verify every extracted total against each original invoice document', score:3},
-      {letter:'C', text:'Ask a general chatbot to read every invoice image and return one combined grand total', score:1},
-      {letter:'D', text:'Use OCR with table extraction, validation rules, and sampled human checks before totaling', score:4}
-    ]
-  },
-  // ── POST-TEST ─────────────────────────────────────────────────────────
-  // Correct positions: C, B, A, D, C, A  (distributed evenly)
-  {
-    id:'s07', cat:'foundations', catLabel:'AI Foundations', badge:'badge-foundations',
-    img:'images/scenarios/s07-foundations.png',
-    q:'A sales team tests a model on last quarter\'s leads and gets excellent conversion predictions. What concern matters most before deployment?',
-    choices:[
-      {letter:'A', text:'The model may overfit last quarter, so test it on older quarters before trusting the results', score:3},
-      {letter:'B', text:'Sales staff may distrust predictions, so plan training before changing their daily qualification workflow', score:2},
-      {letter:'C', text:'The test may leak outcome information unavailable when new leads are scored in live production', score:4},
-      {letter:'D', text:'High accuracy usually means deployment is appropriate if the business goal matches current sales priorities', score:1}
-    ]
-  },
-  {
-    id:'s08', cat:'prompt', catLabel:'Prompt Engineering', badge:'badge-prompt',
-    img:'images/scenarios/s08-prompt.png',
-    q:'AI keeps returning long policy summaries when you need a two-column implementation checklist. What fix is best?',
-    choices:[
-      {letter:'A', text:'Tell the model its previous answers were too verbose and ask it to be more concise next time', score:1},
-      {letter:'B', text:'Specify table columns, maximum row count, inclusion rules, and an example row before generation', score:4},
-      {letter:'C', text:'Ask for bullet points only, because bullets usually prevent unnecessary explanatory paragraphs in outputs', score:2},
-      {letter:'D', text:'Set a word limit and request only actions, owners, deadlines, dependencies, and missing context', score:3}
-    ]
-  },
-  {
-    id:'s09', cat:'evaluation', catLabel:'Critical Evaluation', badge:'badge-evaluation',
-    img:'images/scenarios/s09-evaluation.png',
-    q:'You ask the same technical question three times and receive matching answers. What is the best interpretation?',
-    choices:[
-      {letter:'A', text:'Consistency is useful evidence, but independent checks still determine whether the answer is correct', score:4},
-      {letter:'B', text:'Repetition confirms correctness because random errors would produce noticeably different answers each time', score:1},
-      {letter:'C', text:'Agreement suggests the prompt is stable, so verify only the highest impact claims before proceeding', score:3},
-      {letter:'D', text:'The model may be copying common patterns, so ask a second model to cross-check the answer', score:2}
-    ]
-  },
-  {
-    id:'s10', cat:'ethics', catLabel:'Ethics & Safety', badge:'badge-ethics',
-    img:'images/scenarios/s10-ethics.png',
-    q:'An AI screening tool rejects a much higher share of applicants from one protected group. What should the company do first?',
-    choices:[
-      {letter:'A', text:'Lower the rejection threshold until group outcomes look more balanced overall in recent hiring reports', score:2},
-      {letter:'B', text:'Audit training data, features, and performance metrics across groups before continuing automated screening', score:3},
-      {letter:'C', text:'Keep using it because historical hiring data represents actual company standards and established priorities', score:1},
-      {letter:'D', text:'Pause affected decisions, investigate disparate impact, and require accountable human review before rejections', score:4}
-    ]
-  },
-  {
-    id:'s11', cat:'collaboration', catLabel:'Human-AI Collaboration', badge:'badge-collaboration',
-    img:'images/scenarios/s11-collaboration.png',
-    q:'A student uses AI while learning recursion. Which use is least helpful for building transferable skill?',
-    choices:[
-      {letter:'A', text:'Asking for hints after making one attempt and explaining the current misunderstanding to the model', score:3},
-      {letter:'B', text:'Asking for a final solution immediately, then reading it carefully until the logic feels clear', score:1},
-      {letter:'C', text:'Comparing two personal recursion solutions with AI feedback on invariants and base cases afterward', score:4},
-      {letter:'D', text:'Asking AI to generate additional practice problems after completing the assigned ones independently first', score:2}
-    ]
-  },
-  {
-    id:'s12', cat:'tool', catLabel:'Tool Selection', badge:'badge-tool',
-    img:'images/scenarios/s12-tool.png',
-    q:'A clinic wants AI to summarize internal procedures that must never leave approved infrastructure. Which option fits best?',
-    choices:[
-      {letter:'A', text:'Run an approved local model or private deployment with documented access controls and monitoring', score:4},
-      {letter:'B', text:'Use any consumer chatbot if staff avoid entering patient names or addresses into the conversation', score:1},
-      {letter:'C', text:'Use an enterprise chatbot only after confirming retention, training, and audit settings in writing', score:3},
-      {letter:'D', text:'Encrypt documents before upload, then decrypt the generated summary inside the clinic systems afterward', score:2}
-    ]
+// ─── Instrument and configuration ───────────────────────────────────────
+// items-v2.js (generated, no keys) sets window.FA2601_ITEMS.
+// config-v2.js sets window.FA2601_CONFIG. See docs/V2_CONTRACT.md.
+const SCHEMA = 'fa2601-v2';
+const STAGES = ['pre', 'post'];
+const CODE_PATTERN = /^([0-9]|[1-9][0-9]|100)[A-Z]$/;
+const UUID_V4_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
+const BACKGROUND_VALUES = ['', 'none', 'beginner', 'intermediate', 'advanced', 'prefer_not'];
+const DRAFT_KEY_PREFIX = 'fa2601_v2_draft_';
+const BUSY_RETRY_DELAYS_MS = [1000, 2000, 4000];
+const SUBMIT_TIMEOUT_MS = 45000;
+const LOCAL_HOSTNAMES = ['127.0.0.1', 'localhost'];
+const PROD_HOSTNAME = 'weihaoqu.github.io';
+const PROD_EXEC_URL = 'https://script.google.com/macros/s/AKfycbzunWMB8KF0DWR336e3evImpQrBwjZ-sk4TRBZoTmxj7a4pBOgqjrOrFezkal4mfRfsrw/exec';
+const TEST_ENDPOINT_PLACEHOLDER = 'REPLACE_WITH_TEST_EXEC_URL';
+
+const ITEMS = window.FA2601_ITEMS;
+const CONFIG = window.FA2601_CONFIG;
+const INSTRUMENT = checkInstrument();
+
+function checkInstrument(){
+  if(!CONFIG || typeof CONFIG !== 'object'){
+    return {ready:false, problem:'The settings file (config-v2.js) did not load.', pairs:[]};
   }
-];
+  if(!ITEMS || typeof ITEMS !== 'object' || !ITEMS.items || !ITEMS.selections){
+    return {ready:false, problem:'The question file (items-v2.js) did not load.', pairs:[]};
+  }
+  const pairs = ITEMS.selections[CONFIG.selection];
+  if(!Array.isArray(pairs) || pairs.length === 0){
+    return {ready:false, problem:`The question set "${CONFIG.selection}" is missing from the question file.`, pairs:[]};
+  }
+  const itemsScript = document.querySelector('script[src^="items-v2.js"]');
+  const pageVersion = itemsScript ? new URL(itemsScript.src, location.href).searchParams.get('v') : null;
+  if(typeof ITEMS.instrument_version !== 'string' || ITEMS.instrument_version !== pageVersion){
+    return {ready:false, problem:'The question file does not match this version of the page.', pairs:[]};
+  }
+  if(typeof ITEMS.bank_sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(ITEMS.bank_sha256)){
+    return {ready:false, problem:'The question file has no bank fingerprint.', pairs:[]};
+  }
+  for(const pair of pairs){
+    for(const form of ['A', 'B']){
+      const item = ITEMS.items[`${pair}-${form}`];
+      const valid = item && typeof item.stem === 'string' && Array.isArray(item.options)
+        && item.options.length === OPTION_LETTERS.length
+        && item.options.every(option => typeof option === 'string');
+      if(!valid){
+        return {ready:false, problem:`Question ${pair}-${form} is missing from the question file.`, pairs:[]};
+      }
+    }
+  }
+  return {ready:true, problem:'', pairs:pairs.slice()};
+}
 
-const CATEGORIES = [
-  {key:'foundations',    label:'AI Foundations',         color:'var(--cat-foundations)',    ids:['s01','s07']},
-  {key:'prompt',        label:'Prompt Engineering',     color:'var(--cat-prompt)',         ids:['s02','s08']},
-  {key:'evaluation',    label:'Critical Evaluation',    color:'var(--cat-evaluation)',     ids:['s03','s09']},
-  {key:'ethics',        label:'Ethics & Safety',        color:'var(--cat-ethics)',         ids:['s04','s10']},
-  {key:'collaboration', label:'Human-AI Collaboration', color:'var(--cat-collaboration)',  ids:['s05','s11']},
-  {key:'tool',          label:'Tool Selection',         color:'var(--cat-tool)',           ids:['s06','s12']}
-];
+// Decide where answers may be sent. Anything unexpected refuses (no fetch).
+function resolveEndpoint(){
+  if(!CONFIG || typeof CONFIG !== 'object' || !CONFIG.endpoints || typeof CONFIG.endpoints !== 'object'){
+    return {ok:false, reason:'the settings file is missing'};
+  }
+  const host = location.hostname;
+  const endpoints = CONFIG.endpoints;
+  if(CONFIG.mode === 'local'){
+    const url = String(endpoints.local || '').trim();
+    if(!LOCAL_HOSTNAMES.includes(host)){
+      return {ok:false, reason:'local mode only works on 127.0.0.1 or localhost'};
+    }
+    if(!/^\/(?!\/)/.test(url)){
+      return {ok:false, reason:'local mode must use a path on this computer'};
+    }
+    return {ok:true, url};
+  }
+  if(CONFIG.mode === 'test'){
+    const url = String(endpoints.test || '').trim();
+    const prodIds = [PROD_EXEC_URL, String(endpoints.prod || '')]
+      .map(deploymentId)
+      .filter(Boolean);
+    if(!url || url === TEST_ENDPOINT_PLACEHOLDER){
+      return {ok:false, reason:'the test endpoint is not set'};
+    }
+    if(url === PROD_EXEC_URL || url === String(endpoints.prod || '').trim() || prodIds.some(id => url.includes(id))){
+      return {ok:false, reason:'test mode cannot use the production endpoint'};
+    }
+    return {ok:true, url};
+  }
+  if(CONFIG.mode === 'prod'){
+    const url = String(endpoints.prod || '').trim();
+    if(host !== PROD_HOSTNAME){
+      return {ok:false, reason:`production mode only works on ${PROD_HOSTNAME}`};
+    }
+    if(!url || url === TEST_ENDPOINT_PLACEHOLDER){
+      return {ok:false, reason:'the production endpoint is not set'};
+    }
+    return {ok:true, url};
+  }
+  return {ok:false, reason:'the settings file has an unknown mode'};
+}
 
-const LEVELS = [
-  {min:6,max:11,  label:'Passive Consumer',   lvl:1,cls:'level-1'},
-  {min:12,max:15, label:'Developing User',    lvl:2,cls:'level-2'},
-  {min:16,max:20, label:'Proficient Creator',  lvl:3,cls:'level-3'},
-  {min:21,max:24, label:'Process Partner',     lvl:4,cls:'level-4'}
-];
-
-// ─── Scenario Sets ──────────────────────────────────────────────────────
-const PRE_IDS  = ['s01','s02','s03','s04','s05','s06']; // one per category
-const POST_IDS = ['s07','s08','s09','s10','s11','s12']; // parallel form
+function deploymentId(url){
+  const match = /\/macros\/s\/([^/?#]+)/.exec(String(url || ''));
+  return match ? match[1] : '';
+}
 
 // ─── Student assent (HS version) ───────────────────────────────────────
 const ASSENT_VERSION = 'FA2601-Assent-2026-08-21';
@@ -532,7 +417,6 @@ function hasSessionAssent(){
 
 let assentGiven = hasSessionAssent() ? true : null; // true, false, or null
 let pendingTestType = null; // set when assent is needed before proceeding
-syncLeaveButton();
 
 const ASSENT_FORM_HTML = `
   <h2>Assent Form for Minor Subjects</h2>
@@ -609,57 +493,41 @@ function handleConsent(accepted){
   showScreen('screen-chooser');
 }
 
-function withdrawFromStudy(){
-  if(activeSubmissionController) activeSubmissionController.abort();
-  try {
-    sessionStorage.removeItem(ASSENT_SESSION_KEY);
-  } catch(e){}
-  assentGiven = false;
-  resetResearchFlow();
-  showNonAssentInfo(true);
-  showScreen('screen-chooser');
-}
-
 // ─── State ──────────────────────────────────────────────────────────────
 let testType = null; // 'pre' or 'post'
-let activeScenarios = []; // 5 scenarios for current test
-let currentQ = 0;
-let answers = [];
-let shuffledChoices = [];
-let likertVal = null;
-let participantId = '';
-let activeSubmissionController = null;
+let draft = null; // {identity, submission_id, client_started_at, code, background, cursor, answers, frozen}
+let formItems = []; // [{id, stem, options}] for the current stage, in presentation order
+let flowGeneration = 0; // bumped on reset; a save that started under an older value is ignored
+let saveInFlight = false;
 
 function resetResearchFlow(){
+  flowGeneration++;
+  saveInFlight = false;
+  STAGES.forEach(removeDraft);
   testType = null;
-  activeScenarios = [];
-  currentQ = 0;
-  answers = [];
-  shuffledChoices = [];
-  likertVal = null;
-  participantId = '';
+  draft = null;
+  formItems = [];
   pendingTestType = null;
-  window._lastAnalysis = '';
   const codeInput = document.getElementById('inp-code');
   if(codeInput) codeInput.value = '';
   const backgroundInput = document.getElementById('inp-background');
   if(backgroundInput) backgroundInput.value = '';
-  const openInput = document.getElementById('inp-open');
-  if(openInput) openInput.value = '';
-  document.querySelectorAll('.likert-btn').forEach(btn => btn.classList.remove('selected'));
+  hideReviewError();
+  clearSavedMarkers();
 }
 
-function showNonAssentInfo(withdrawn = false){
+function clearSavedMarkers(){
+  const status = document.getElementById('post-done-status');
+  if(status) status.replaceChildren();
+  delete document.body.dataset.fa2601Saved;
+}
+
+function showNonAssentInfo(){
   const info = document.getElementById('non-assent-info');
   const title = document.getElementById('non-assent-title');
   const message = document.getElementById('non-assent-message');
-  if(withdrawn){
-    title.textContent = 'You left the research study.';
-    message.textContent = 'You may still join the educational AI training. This app cleared your current code and answers and will not show more research questions in this browser session. If you chose to leave while a submission was being sent, that submission may already have been recorded. You may contact Dr. Qu if you have questions.';
-  } else {
-    title.textContent = 'You selected I DO NOT AGREE.';
-    message.textContent = 'You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a research matching code, and do not complete the pre-test, post-test, or research surveys.';
-  }
+  title.textContent = 'You selected I DO NOT AGREE.';
+  message.textContent = 'You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a research matching code, and do not complete the pre-test, post-test, or research surveys.';
   if(info) info.classList.add('active');
 }
 
@@ -668,40 +536,168 @@ function hideNonAssentInfo(){
   if(info) info.classList.remove('active');
 }
 
-// ─── URL params ─────────────────────────────────────────────────────────
-(function checkParams(){
-  const p = new URLSearchParams(location.search);
-  const t = p.get('type');
-  if(t === 'pre' || t === 'post'){
-    chooseType(t);
-  }
-})();
-
-// ─── Shuffle ────────────────────────────────────────────────────────────
-function shuffle(arr){
-  const a = [...arr];
-  for(let i = a.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+// ─── Form order from the Private Code (identical in the Apps Script) ────
+function fa2601Order(code) {            // code already normalized: trim().toUpperCase()
+  var h = 0x811c9dc5 >>> 0;
+  for (var i = 0; i < code.length; i++) { h ^= code.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b) >>> 0;
+  h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35) >>> 0;
+  h ^= h >>> 16;
+  return ((h >>> 0) & 1) === 0 ? 'AB' : 'BA';
 }
 
-function initShuffles(){
-  shuffledChoices = activeScenarios.map(s => shuffle(s.choices));
+function normalizeCode(value){
+  return String(value || '').trim().toUpperCase();
+}
+
+function formForStage(code, stage){
+  const order = fa2601Order(code);
+  return {order, form: order[stage === 'pre' ? 0 : 1]};
+}
+
+function buildFormItems(form){
+  return INSTRUMENT.pairs.map(pair => {
+    const id = `${pair}-${form}`;
+    const item = ITEMS.items[id];
+    return {id, stem: item.stem, options: item.options.slice()};
+  });
+}
+
+function newSubmissionId(){
+  if(window.crypto && typeof crypto.randomUUID === 'function'){
+    return crypto.randomUUID().toLowerCase();
+  }
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+function hasKey(object, key){
+  return Object.prototype.hasOwnProperty.call(object, key);
+}
+
+// ─── Draft (sessionStorage, one per stage) ──────────────────────────────
+// A draft belongs to one instrument (version, bank hash, selection) and one
+// destination (mode, endpoint). It is resumed or resent only on a page with the
+// same identity; anything else is cleared, never sent (a test draft must never
+// reach production, and old answers must never carry a newer bank's version).
+let draftNotice = '';
+
+function draftIdentity(){
+  const endpoint = resolveEndpoint();
+  return {
+    instrument_version: ITEMS && ITEMS.instrument_version,
+    bank_sha256: ITEMS && ITEMS.bank_sha256,
+    selection: CONFIG && CONFIG.selection,
+    mode: CONFIG && CONFIG.mode,
+    endpoint: endpoint.ok ? endpoint.url : null
+  };
+}
+
+function sameIdentity(a, b){
+  if(!a || typeof a !== 'object' || !b) return false;
+  return ['instrument_version', 'bank_sha256', 'selection', 'mode', 'endpoint']
+    .every(field => typeof a[field] === 'string' && a[field] !== '' && a[field] === b[field]);
+}
+
+function draftKey(stage){
+  return `${DRAFT_KEY_PREFIX}${stage}`;
+}
+
+function removeDraft(stage){
+  try {
+    sessionStorage.removeItem(draftKey(stage));
+  } catch(e){}
+}
+
+function saveDraft(){
+  if(assentGiven !== true || !draft || !testType) return;
+  const record = {
+    identity: draft.identity,
+    submission_id: draft.submission_id,
+    client_started_at: draft.client_started_at,
+    code: draft.code,
+    background: draft.background,
+    cursor: draft.cursor,
+    answers: draft.answers,
+    frozen: draft.frozen
+  };
+  try {
+    sessionStorage.setItem(draftKey(testType), JSON.stringify(record));
+  } catch(e){}
+}
+
+function loadDraft(stage){
+  let raw = null;
+  try {
+    raw = sessionStorage.getItem(draftKey(stage));
+  } catch(e){
+    return null;
+  }
+  if(!raw) return null;
+  let saved = null;
+  try {
+    saved = JSON.parse(raw);
+  } catch(e){
+    saved = null;
+  }
+  // Identity first: a draft for another instrument or destination is cleared
+  // with a notice, before it is checked against this page's questions.
+  if(saved && typeof saved === 'object' && !Array.isArray(saved) && !sameIdentity(saved.identity, draftIdentity())){
+    removeDraft(stage);
+    draftNotice = 'Answers saved earlier in this browser were for a different version of this test, so they were cleared. Please start again.';
+    return null;
+  }
+  if(!isValidDraft(saved, stage)){
+    removeDraft(stage);
+    return null;
+  }
+  return saved;
+}
+
+function isValidDraft(saved, stage){
+  if(!saved || typeof saved !== 'object' || Array.isArray(saved)) return false;
+  if(typeof saved.submission_id !== 'string' || !UUID_V4_PATTERN.test(saved.submission_id)) return false;
+  if(typeof saved.client_started_at !== 'string' || !saved.client_started_at) return false;
+  if(typeof saved.code !== 'string' || !CODE_PATTERN.test(saved.code)) return false;
+  if(!BACKGROUND_VALUES.includes(saved.background)) return false;
+  if(stage === 'post' && saved.background !== '') return false;
+  const ids = buildFormItems(formForStage(saved.code, stage).form).map(item => item.id);
+  if(!Number.isInteger(saved.cursor) || saved.cursor < 0 || saved.cursor > ids.length) return false;
+  if(!saved.answers || typeof saved.answers !== 'object' || Array.isArray(saved.answers)) return false;
+  for(const [key, value] of Object.entries(saved.answers)){
+    if(!ids.includes(key)) return false;
+    if(value !== null && !OPTION_LETTERS.includes(value)) return false;
+  }
+  if(saved.frozen !== null){
+    if(typeof saved.frozen !== 'string') return false;
+    try {
+      const body = JSON.parse(saved.frozen);
+      if(!body || body.submission_id !== saved.submission_id || body.stage !== stage) return false;
+    } catch(e){
+      return false;
+    }
+  }
+  return true;
 }
 
 // ─── Screen switching ───────────────────────────────────────────────────
-function syncLeaveButton(){
-  const leaveButton = document.getElementById('btn-leave-study');
-  if(leaveButton) leaveButton.hidden = assentGiven !== true;
-}
-
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  syncLeaveButton();
   window.scrollTo({top:0, behavior:'instant'});
+}
+
+function focusElement(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  try {
+    el.focus({preventScroll:true});
+  } catch(e){
+    el.focus();
+  }
 }
 
 function chooseType(type){
@@ -726,22 +722,47 @@ function proceedAfterConsent(type){
     showScreen('screen-chooser');
     return;
   }
+  if(!INSTRUMENT.ready || (type !== 'pre' && type !== 'post')){
+    showStartupProblem();
+    showScreen('screen-chooser');
+    return;
+  }
   testType = type;
-  const ids = type === 'pre' ? PRE_IDS : POST_IDS;
-  activeScenarios = ids.map(id => SCENARIOS.find(s => s.id === id));
+  clearSavedMarkers();
+  const saved = loadDraft(type);
+  if(saved){
+    draft = saved;
+    formItems = buildFormItems(formForStage(draft.code, type).form);
+    resumeDraft();
+    return;
+  }
+  draft = null;
+  formItems = [];
   showScreen('screen-welcome');
   const title = document.getElementById('welcome-title');
   const sub = document.getElementById('welcome-sub');
   const bgGroup = document.getElementById('bg-group');
+  sub.textContent = `${INSTRUMENT.pairs.length} short questions`;
+  const notice = document.getElementById('draft-notice');
+  notice.textContent = draftNotice;
+  notice.hidden = !draftNotice;
+  draftNotice = '';
   if(type === 'pre'){
     title.textContent = 'Pre-Session Assessment';
-    sub.textContent = '6 quick questions about using AI';
     bgGroup.style.display = '';
   } else {
     title.textContent = 'Post-Session Assessment';
-    sub.textContent = 'Let\'s see how far you\'ve come!';
     bgGroup.style.display = 'none';
   }
+}
+
+function resumeDraft(){
+  if(draft.frozen){
+    showScreen('screen-save');
+    showSaveState('unconfirmed');
+    return;
+  }
+  showCurrentStep();
 }
 
 function startQuiz(){
@@ -751,423 +772,425 @@ function startQuiz(){
     showScreen('screen-chooser');
     return;
   }
-  const privateCode = document.getElementById('inp-code').value.trim().toUpperCase();
+  if(!INSTRUMENT.ready || (testType !== 'pre' && testType !== 'post')){
+    showStartupProblem();
+    showScreen('screen-chooser');
+    return;
+  }
+  const privateCode = normalizeCode(document.getElementById('inp-code').value);
   if(!privateCode){
     showToast('Please enter your private code');
     return;
   }
-  if(!/^([0-9]|[1-9][0-9]|100)[A-Z]$/.test(privateCode)){
+  if(!CODE_PATTERN.test(privateCode)){
     showToast('Use a code like 57R: number 0-100 plus one letter A-Z');
     return;
   }
+  let background = '';
   if(testType === 'pre'){
-    const bg = document.getElementById('inp-background').value;
-    if(!bg){
-      showToast('Please select your coding background');
-      return;
-    }
+    background = document.getElementById('inp-background').value;
+    if(!BACKGROUND_VALUES.includes(background)) background = '';
   }
-  participantId = privateCode;
-  initShuffles();
-  currentQ = 0;
-  answers = new Array(6).fill(null);
+  draft = {
+    identity: draftIdentity(),
+    submission_id: newSubmissionId(),
+    client_started_at: new Date().toISOString(),
+    code: privateCode,
+    background: background,
+    cursor: 0,
+    answers: {},
+    frozen: null
+  };
+  formItems = buildFormItems(formForStage(privateCode, testType).form);
+  saveDraft();
+  showCurrentStep();
+}
+
+// ─── Questions ──────────────────────────────────────────────────────────
+function showCurrentStep(){
+  if(draft.cursor >= formItems.length){
+    renderReview();
+    showScreen('screen-review');
+    focusElement('review-title');
+    return;
+  }
   renderQuestion();
   showScreen('screen-question');
+  focusElement('q-text');
 }
 
-// ─── Question rendering ─────────────────────────────────────────────────
 function renderQuestion(){
-  const s = activeScenarios[currentQ];
-  const sc = shuffledChoices[currentQ];
-  const total = activeScenarios.length;
+  const total = formItems.length;
+  const index = draft.cursor;
+  const item = formItems[index];
+  const chosen = draft.answers[item.id];
 
-  // Counter + progress
-  document.getElementById('q-counter').textContent = `Q${currentQ+1} of ${total}`;
-  document.getElementById('q-progress').style.width = `${((currentQ+1)/total)*100}%`;
+  document.getElementById('q-counter').textContent = `Question ${index + 1} of ${total}`;
+  document.getElementById('q-progress').style.width = `${((index + 1) / total) * 100}%`;
+  document.getElementById('q-text').textContent = item.stem;
 
-  // Badge
-  document.getElementById('q-badge').innerHTML = `<span class="badge ${s.badge}">${s.catLabel}</span>`;
+  const group = document.getElementById('q-choices');
+  group.replaceChildren();
+  item.options.forEach((text, i) => {
+    const letter = OPTION_LETTERS[i];
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'choice-btn';
+    button.setAttribute('role', 'radio');
+    button.setAttribute('aria-checked', chosen === letter ? 'true' : 'false');
+    button.dataset.letter = letter;
+    const letterSpan = document.createElement('span');
+    letterSpan.className = 'choice-letter';
+    letterSpan.textContent = letter;
+    const textSpan = document.createElement('span');
+    textSpan.className = 'choice-text';
+    textSpan.textContent = text;
+    button.append(letterSpan, textSpan);
+    button.addEventListener('click', () => selectChoice(letter));
+    group.appendChild(button);
+  });
 
-  // Image
-  const img = document.getElementById('q-img');
-  const ph = document.getElementById('q-img-placeholder');
-  ph.style.display = 'flex';
-  ph.textContent = 'Loading...';
-  img.src = s.img;
-
-  // Question text
-  document.getElementById('q-text').textContent = s.q;
-
-  // Choices
-  const cDiv = document.getElementById('q-choices');
-  const letters = ['A','B','C','D'];
-  cDiv.innerHTML = sc.map((c, i) => `
-    <button class="choice-btn${answers[currentQ] && answers[currentQ].choiceIdx === i ? ' selected' : ''}"
-            onclick="selectChoice(${i})" type="button">
-      <span class="choice-letter">${letters[i]}</span>
-      <span class="choice-text">${c.text}</span>
-    </button>
-  `).join('');
-
-  // Nav
-  document.getElementById('btn-back').style.visibility = currentQ === 0 ? 'hidden' : 'visible';
-  const nextBtn = document.getElementById('btn-next');
-  nextBtn.disabled = !answers[currentQ];
-  nextBtn.textContent = currentQ === total - 1 ? 'Finish' : 'Next';
+  document.getElementById('btn-back').style.visibility = index === 0 ? 'hidden' : 'visible';
+  document.getElementById('btn-next').disabled = !OPTION_LETTERS.includes(chosen);
 }
 
-function selectChoice(idx){
-  const sc = shuffledChoices[currentQ];
-  const chosen = sc[idx];
-  answers[currentQ] = { choiceIdx: idx, origLetter: chosen.letter, score: chosen.score };
-
-  // Update UI
-  document.querySelectorAll('.choice-btn').forEach((btn, i) => {
-    btn.classList.toggle('selected', i === idx);
+function selectChoice(letter){
+  if(assentGiven !== true || !draft || draft.frozen) return;
+  const item = formItems[draft.cursor];
+  if(!item || !OPTION_LETTERS.includes(letter)) return;
+  draft.answers[item.id] = letter;
+  saveDraft();
+  document.querySelectorAll('#q-choices .choice-btn').forEach(button => {
+    button.setAttribute('aria-checked', button.dataset.letter === letter ? 'true' : 'false');
   });
   document.getElementById('btn-next').disabled = false;
 }
 
+// Arrow keys move focus between the four options; Space/Enter choose.
+document.getElementById('q-choices').addEventListener('keydown', event => {
+  const steps = {ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1};
+  if(!hasKey(steps, event.key)) return;
+  const buttons = Array.from(event.currentTarget.querySelectorAll('.choice-btn'));
+  const current = buttons.indexOf(document.activeElement);
+  if(current < 0) return;
+  event.preventDefault();
+  buttons[(current + steps[event.key] + buttons.length) % buttons.length].focus();
+});
+
 function goBack(){
-  if(currentQ > 0){
-    currentQ--;
-    renderQuestion();
-    window.scrollTo({top:0, behavior:'instant'});
+  if(assentGiven !== true || !draft || draft.frozen) return;
+  if(draft.cursor > 0){
+    draft.cursor = Math.min(draft.cursor, formItems.length) - 1;
+    saveDraft();
+    showCurrentStep();
   }
 }
 
 function goNext(){
-  if(!answers[currentQ]) return;
-  if(currentQ < activeScenarios.length - 1){
-    currentQ++;
-    renderQuestion();
-    window.scrollTo({top:0, behavior:'instant'});
-  } else {
-    finishQuiz();
-  }
+  if(assentGiven !== true || !draft || draft.frozen) return;
+  const item = formItems[draft.cursor];
+  if(!item || !OPTION_LETTERS.includes(draft.answers[item.id])) return;
+  advance();
 }
 
-// ─── Analysis Generator ─────────────────────────────────────────────────
-const CAT_INSIGHTS = {
-  foundations: {
-    4: 'You understand how AI actually works — it generates patterns, not opinions. This prevents over-trusting its output.',
-    3: 'You sense AI has limitations, but may still attribute human-like qualities to it. Understanding the mechanism helps.',
-    2: 'You may be influenced by AI\'s human-sounding language into thinking it has intent or judgment.',
-    1: 'AI doesn\'t think, believe, or understand — it predicts the next likely word. Recognizing this is the foundation of AI literacy.'
-  },
-  prompt: {
-    4: 'You write specific, constrained prompts with clear details — this is the key skill that separates effective AI users.',
-    3: 'Your prompts point in the right direction but lack the specific constraints AI needs to deliver great results.',
-    2: 'You tend to rely on model changes or retries instead of improving your prompt with specifics.',
-    1: 'Vague prompts get vague results. Adding audience, format, length, and concrete details transforms AI output.'
-  },
-  evaluation: {
-    4: 'You treat AI output with healthy skepticism — verifying claims and citations rather than trusting surface-level confidence.',
-    3: 'You have good instincts to question AI output, but may rely on shortcuts rather than thorough verification.',
-    2: 'You may trust AI output based on how it looks or sounds rather than independently checking the facts.',
-    1: 'AI can generate confident, detailed, and completely fabricated information. Always verify against primary sources.'
-  },
-  ethics: {
-    4: 'You recognize the real risks of AI — especially around data privacy, bias, and the amplification of historical patterns.',
-    3: 'You\'re aware AI has ethical dimensions but may focus on surface issues rather than deeper systemic risks.',
-    2: 'You see some AI risks but may miss the most critical ones around data privacy and algorithmic bias.',
-    1: 'AI poses real risks around privacy and bias that aren\'t always obvious. Understanding these is essential for responsible use.'
-  },
-  collaboration: {
-    4: 'You use AI as an amplifier for your own thinking — you lead, AI assists. This is the most effective partnership model.',
-    3: 'You\'re finding a balance between doing the work yourself and leveraging AI, but can optimize the workflow further.',
-    2: 'You may lean too heavily on AI for the creative or structural work. The best results come from leading with your own thinking.',
-    1: 'Delegating everything to AI means you lose the learning and strategic thinking. Start with your own ideas, then use AI to refine.'
-  },
-  tool: {
-    4: 'You can match the right AI tool to the situation, considering privacy, structure, and the nature of the task.',
-    3: 'You\'re on the right track with tool selection, but might default to general tools when specialized ones would be better.',
-    2: 'You tend to use one tool for everything rather than choosing the best fit for each specific task.',
-    1: 'Different AI tools have different strengths. Choosing the right one for your task makes a huge difference in results.'
-  }
-};
+function skipQuestion(){
+  if(assentGiven !== true || !draft || draft.frozen) return;
+  const item = formItems[draft.cursor];
+  if(!item) return;
+  draft.answers[item.id] = null;
+  advance();
+}
 
-function generateAnalysis(){
-  const total = answers.reduce((s, a) => s + a.score, 0);
-  const level = LEVELS.find(l => total >= l.min && total <= l.max) || LEVELS[0];
+// After every question has been answered or skipped once, Next/Skip return to the review.
+function advance(){
+  const total = formItems.length;
+  const allReached = formItems.every(item => hasKey(draft.answers, item.id));
+  draft.cursor = (allReached || draft.cursor >= total - 1) ? total : draft.cursor + 1;
+  saveDraft();
+  showCurrentStep();
+}
 
-  // Per-category scores
-  const catScores = {};
-  CATEGORIES.forEach(cat => {
-    catScores[cat.key] = { score: 0, label: cat.label };
-    activeScenarios.forEach((sc, i) => {
-      if (sc.cat === cat.key) catScores[cat.key].score = answers[i]?.score || 0;
-    });
+// ─── Review ─────────────────────────────────────────────────────────────
+function renderReview(){
+  const list = document.getElementById('review-list');
+  list.replaceChildren();
+  formItems.forEach((item, i) => {
+    const value = draft.answers[item.id];
+    const answered = OPTION_LETTERS.includes(value);
+    const statusText = answered ? 'Answered' : (value === null ? 'Skipped' : 'Not answered');
+
+    const row = document.createElement('li');
+    row.className = 'review-row';
+    const label = document.createElement('span');
+    label.className = 'review-label';
+    const question = document.createElement('span');
+    question.className = 'review-q';
+    question.textContent = `Question ${i + 1}`;
+    const status = document.createElement('span');
+    status.className = answered ? 'review-status is-answered' : 'review-status';
+    status.textContent = statusText;
+    label.append(question, status);
+
+    const change = document.createElement('button');
+    change.type = 'button';
+    change.className = 'btn btn-outline review-change';
+    change.textContent = 'Change';
+    change.setAttribute('aria-label', `Change question ${i + 1} (${statusText})`);
+    change.addEventListener('click', () => changeQuestion(i));
+
+    row.append(label, change);
+    list.appendChild(row);
   });
-
-  // Strengths and weaknesses
-  const cats = Object.keys(catScores);
-  const strengths = cats.filter(k => catScores[k].score >= 4);
-  const developing = cats.filter(k => catScores[k].score === 3);
-  const weaknesses = cats.filter(k => catScores[k].score <= 2);
-
-  // Build narrative
-  let parts = [];
-
-  // Overall
-  parts.push(`You scored <strong>${total}/24</strong>, placing you at <strong>${level.label}</strong> level.`);
-
-  if (level.lvl === 4) {
-    parts.push('You demonstrate strong AI mastery across all areas — you approach AI as a process partner, not a magic tool.');
-  } else if (level.lvl === 3) {
-    parts.push('You have a solid foundation in using AI effectively, with room to sharpen a few specific skills.');
-  } else if (level.lvl === 2) {
-    parts.push('You\'re developing awareness of good AI practices, but some key habits need strengthening.');
-  } else {
-    parts.push('You\'re at the beginning of your AI journey — the good news is that these skills are very learnable.');
-  }
-
-  // Strengths
-  if (strengths.length > 0) {
-    const tags = strengths.map(k => `<span class="strength-tag high">${catScores[k].label}</span>`).join('');
-    parts.push(`<strong>Strengths:</strong> ${tags}`);
-    strengths.forEach(k => parts.push(CAT_INSIGHTS[k][catScores[k].score]));
-  }
-
-  // Developing
-  if (developing.length > 0) {
-    const tags = developing.map(k => `<span class="strength-tag mid">${catScores[k].label}</span>`).join('');
-    parts.push(`<strong>Developing:</strong> ${tags}`);
-    developing.forEach(k => parts.push(CAT_INSIGHTS[k][catScores[k].score]));
-  }
-
-  // Weaknesses
-  if (weaknesses.length > 0) {
-    const tags = weaknesses.map(k => `<span class="strength-tag low">${catScores[k].label}</span>`).join('');
-    parts.push(`<strong>Areas to improve:</strong> ${tags}`);
-    weaknesses.forEach(k => parts.push(CAT_INSIGHTS[k][catScores[k].score]));
-  }
-
-  const html = `<h3>Your Analysis</h3><div class="analysis-text">${parts.map(p => `<p style="margin-bottom:8px">${p}</p>`).join('')}</div>`;
-
-  // Plain text version for Google Sheets
-  const plain = parts.map(p => p.replace(/<[^>]+>/g, '')).join(' ');
-
-  return { html, plain };
+  hideReviewError();
 }
 
-// ─── Finish ─────────────────────────────────────────────────────────────
-async function finishQuiz(){
-  const analysis = generateAnalysis();
-  window._lastAnalysis = analysis.plain; // store for submission
+function changeQuestion(index){
+  if(assentGiven !== true || !draft || draft.frozen) return;
+  if(index < 0 || index >= formItems.length) return;
+  draft.cursor = index;
+  saveDraft();
+  showCurrentStep();
+}
 
-  if(testType === 'pre'){
-    document.getElementById('pre-analysis').innerHTML = analysis.html;
-    const finishButton = document.getElementById('btn-next');
-    finishButton.disabled = true;
-    finishButton.textContent = 'Submitting...';
-    try {
-      await submitData(false);
-      if(assentGiven !== true) return;
-      showScreen('screen-pre-done');
-    } catch(error) {
-      if(error.name === 'AbortError' && assentGiven !== true) return;
-      console.warn('Submit error:', error);
-      finishButton.disabled = false;
-      finishButton.textContent = 'Try Again';
-      showToast('Could not record your responses. Check your connection and try again.');
+function showReviewError(message){
+  const el = document.getElementById('review-error');
+  el.textContent = message;
+  el.hidden = false;
+}
+
+function hideReviewError(){
+  const el = document.getElementById('review-error');
+  if(!el) return;
+  el.textContent = '';
+  el.hidden = true;
+}
+
+// ─── Finish: freeze once, then save ─────────────────────────────────────
+function finishAndSave(){
+  if(assentGiven !== true){
+    showNonAssentInfo();
+    resetResearchFlow();
+    showScreen('screen-chooser');
+    return;
+  }
+  if(!draft || saveInFlight) return;
+  if(!draft.frozen){
+    const endpoint = resolveEndpoint();
+    if(!endpoint.ok){
+      showReviewError(`This page cannot save answers: ${endpoint.reason}. Please tell the presenter.`);
+      return;
     }
-  } else {
-    buildResults();
-    document.getElementById('res-analysis').innerHTML = analysis.html;
-    showScreen('screen-results');
+    draft.frozen = buildFrozenBody();
+    saveDraft();
   }
+  showScreen('screen-save');
+  saveFrozenDraft();
 }
 
-function buildResults(){
-  const total = answers.reduce((s, a) => s + a.score, 0);
-
-  // Animated score
-  const scoreEl = document.getElementById('res-score');
-  animateCount(scoreEl, total, 800);
-
-  // Level (scaled to 6 questions: 6-24 range)
-  const level = LEVELS.find(l => total >= l.min && total <= l.max) || LEVELS[0];
-  const levelEl = document.getElementById('res-level');
-  levelEl.textContent = `Level ${level.lvl}: ${level.label}`;
-  levelEl.className = 'level-label ' + level.cls;
-
-  // Skill bars (1 scenario per category = max 4 per category)
-  const skillsEl = document.getElementById('res-skills');
-  skillsEl.innerHTML = CATEGORIES.map(cat => {
-    const catScore = activeScenarios.reduce((s, sc, i) => {
-      return sc.cat === cat.key ? s + (answers[i]?.score || 0) : s;
-    }, 0);
-    const pct = (catScore / 4) * 100;
-    return `
-      <div class="skill-bar-item">
-        <div class="skill-bar-header">
-          <span class="skill-bar-name">${cat.label}</span>
-          <span class="skill-bar-score">${catScore}/4</span>
-        </div>
-        <div class="skill-bar-track">
-          <div class="skill-bar-fill" style="--bar-w:${pct}%;background:${cat.color}"></div>
-        </div>
-      </div>`;
-  }).join('');
-
-  // Trigger bar animations
-  requestAnimationFrame(() => {
-    document.querySelectorAll('.skill-bar-fill').forEach(el => {
-      el.style.width = el.style.getPropertyValue('--bar-w');
-    });
+function buildFrozenBody(){
+  const {order, form} = formForStage(draft.code, testType);
+  const answers = {};
+  formItems.forEach(item => {
+    if(hasKey(draft.answers, item.id)){
+      const value = draft.answers[item.id];
+      answers[item.id] = OPTION_LETTERS.includes(value) ? value : null;
+    }
   });
-
-  // Review items
-  const revEl = document.getElementById('review-items');
-  revEl.innerHTML = activeScenarios.map((s, i) => {
-    const ans = answers[i];
-    const best = s.choices.find(c => c.score === 4);
-    const yours = s.choices.find(c => c.letter === ans.origLetter);
-    return `
-      <div class="review-item">
-        <div class="ri-q">Q${i+1}: ${s.q}</div>
-        <div class="ri-your">Your answer: ${ans.origLetter}. ${yours.text} (${ans.score}/4)</div>
-        ${ans.score < 4 ? `<div class="ri-best">Best answer: ${best.letter}. ${best.text}</div>` : `<div class="ri-best">Correct!</div>`}
-      </div>`;
-  }).join('');
-
-  // Likert
-  const likertRow = document.getElementById('likert-row');
-  likertRow.innerHTML = [1,2,3,4,5].map(n =>
-    `<button class="likert-btn" onclick="selectLikert(${n})" type="button">${n}</button>`
-  ).join('');
-  likertVal = null;
-}
-
-function animateCount(el, target, duration){
-  const start = performance.now();
-  function tick(now){
-    const t = Math.min((now - start) / duration, 1);
-    const ease = 1 - Math.pow(1 - t, 3);
-    el.textContent = Math.round(ease * target);
-    if(t < 1) requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-}
-
-function selectLikert(n){
-  likertVal = n;
-  document.querySelectorAll('.likert-btn').forEach((btn, i) => {
-    btn.classList.toggle('selected', i === n - 1);
-  });
-}
-
-function toggleReview(){
-  const toggle = document.getElementById('review-toggle');
-  const items = document.getElementById('review-items');
-  toggle.classList.toggle('open');
-  items.classList.toggle('open');
-}
-
-// ─── Submit ─────────────────────────────────────────────────────────────
-async function submitResults(){
-  if(assentGiven !== true){
-    showNonAssentInfo();
-    resetResearchFlow();
-    showScreen('screen-chooser');
-    return;
-  }
-  if(!likertVal){
-    showToast('Please rate your confidence (1-5)');
-    return;
-  }
-  const submitButton = document.getElementById('btn-submit');
-  submitButton.textContent = 'Submitting...';
-  submitButton.disabled = true;
-  try {
-    await submitData(true);
-    if(assentGiven !== true) return;
-    submitButton.textContent = 'Submitted!';
-    showToast('Results recorded successfully!');
-  } catch(error) {
-    if(error.name === 'AbortError' && assentGiven !== true) return;
-    console.warn('Submit error:', error);
-    submitButton.textContent = 'Try Again';
-    submitButton.disabled = false;
-    showToast('Could not record your responses. Check your connection and try again.');
-  }
-}
-
-async function submitData(includePost){
-  if(assentGiven !== true){
-    showNonAssentInfo();
-    resetResearchFlow();
-    showScreen('screen-chooser');
-    throw new Error('Affirmative assent is required before submission.');
-  }
-  const bg = document.getElementById('inp-background').value;
-  const total = answers.reduce((s, a) => s + a.score, 0);
-
-  const catScores = {};
-  CATEGORIES.forEach(cat => {
-    catScores[cat.key] = activeScenarios.reduce((s, sc, i) => {
-      return sc.cat === cat.key ? s + (answers[i]?.score || 0) : s;
-    }, 0);
-  });
-
   const payload = {
-    participant_id: participantId,
-    test_type: testType,
+    schema: 'fa2601-v2',
+    instrument_version: ITEMS.instrument_version,
+    bank_sha256: ITEMS.bank_sha256,
+    selection: CONFIG.selection,
+    submission_id: draft.submission_id,
+    stage: testType,
+    participant_id: draft.code,
+    order: order,
+    form: form,
     assent: 'yes',
     assent_version: ASSENT_VERSION,
-    coding_background: testType === 'pre' ? bg : '',
-    timestamp: new Date().toISOString(),
-    total_score: total,
-    cat_foundations: catScores.foundations,
-    cat_prompt: catScores.prompt,
-    cat_evaluation: catScores.evaluation,
-    cat_ethics: catScores.ethics,
-    cat_collaboration: catScores.collaboration,
-    cat_tool: catScores.tool
+    coding_background: testType === 'pre' ? draft.background : '',
+    answers: answers,
+    client_started_at: draft.client_started_at,
+    client_submitted_at: new Date().toISOString()
   };
+  return JSON.stringify(payload);
+}
 
-  // Per-question scores and choices (use scenario IDs)
-  activeScenarios.forEach((sc, i) => {
-    payload[`${sc.id}_score`] = answers[i].score;
-    payload[`${sc.id}_choice`] = answers[i].origLetter.toLowerCase();
-  });
+function retrySave(){
+  if(assentGiven !== true || !draft || !draft.frozen || saveInFlight) return;
+  saveFrozenDraft();
+}
 
-  // Analysis text
-  payload.analysis = window._lastAnalysis || '';
+function wait(ms){
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-  if(includePost){
-    payload.likert_confidence = likertVal;
-    payload.open_response = document.getElementById('inp-open').value.trim();
+// Sends the frozen body (byte-identical on every attempt) and applies the contract's status rules.
+async function saveFrozenDraft(){
+  if(assentGiven !== true || !draft || !draft.frozen || saveInFlight) return;
+  const endpoint = resolveEndpoint();
+  if(!endpoint.ok){
+    showSaveState('refused', endpoint.reason);
+    return;
   }
+  if(!sameIdentity(draft.identity, draftIdentity())){
+    showSaveState('refused', 'these answers were started for a different version or destination');
+    return;
+  }
+  const generation = flowGeneration;
+  const stage = testType;
+  const body = draft.frozen;
+  const submissionId = draft.submission_id;
+  saveInFlight = true;
+  showSaveState('sending');
+  try {
+    for(let attempt = 0; ; attempt++){
+      let outcome;
+      try {
+        outcome = await submitData(endpoint.url, body, submissionId);
+      } catch(error){
+        if(generation !== flowGeneration || assentGiven !== true) return;
+        console.warn('Submit error:', error);
+        outcome = {kind:'unconfirmed', code:'network'};
+      }
+      if(generation !== flowGeneration || assentGiven !== true) return;
+      if(outcome.kind === 'busy' && attempt < BUSY_RETRY_DELAYS_MS.length){
+        const delay = BUSY_RETRY_DELAYS_MS[attempt];
+        showSaveState('busy', delay / 1000);
+        await wait(delay);
+        if(generation !== flowGeneration || assentGiven !== true) return;
+        showSaveState('sending');
+        continue;
+      }
+      applySaveOutcome(stage, outcome);
+      return;
+    }
+  } finally {
+    if(generation === flowGeneration) saveInFlight = false;
+  }
+}
 
-  // POST to Google Apps Script
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0T56lxoJSiozLd3eW14gPWfg-9qJa6wexN49OrnWqwbXmLgW7vRlRVD11WxVBo678uQ/exec';
-  if(SCRIPT_URL === 'YOUR_GOOGLE_SCRIPT_URL'){
-    throw new Error('The assessment submission service is not configured.');
+async function submitData(endpointUrl, body, submissionId){
+  if(assentGiven !== true){
+    throw new Error('Affirmative assent is required before submission.');
   }
   const submissionController = new AbortController();
-  activeSubmissionController = submissionController;
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    submissionController.abort();
+  }, SUBMIT_TIMEOUT_MS);
   try {
-    const response = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'text/plain;charset=utf-8'},
-      body: JSON.stringify(payload),
-      signal: submissionController.signal
-    });
+    let response;
+    try {
+      response = await fetch(endpointUrl, {
+        method: 'POST',
+        headers: {'Content-Type': 'text/plain;charset=utf-8'},
+        body: body,
+        signal: submissionController.signal
+      });
+    } catch(error){
+      if(error.name === 'AbortError' && !timedOut) throw error;
+      return {kind:'unconfirmed', code: timedOut ? 'timeout' : 'network'};
+    }
     if(!response.ok){
-      throw new Error(`Submission service returned HTTP ${response.status}.`);
+      return {kind:'unconfirmed', code:`http_${response.status}`};
     }
-    const result = await response.json();
+    let result;
+    try {
+      result = await response.json();
+    } catch(error){
+      if(error.name === 'AbortError' && !timedOut) throw error;
+      return {kind:'unconfirmed', code:'invalid_json'};
+    }
+    if(!result || typeof result !== 'object'){
+      return {kind:'unconfirmed', code:'invalid_json'};
+    }
     if(result.status !== 'success'){
-      throw new Error(result.message || 'The submission service rejected the response.');
+      const known = ['busy', 'conflict', 'closed', 'not_assented', 'error'];
+      const kind = known.includes(result.status) ? result.status : 'error';
+      const code = typeof result.code === 'string' && result.code ? result.code : String(result.status || 'unknown');
+      return {kind, code};
     }
-    return result;
+    if(result.receipt !== submissionId){
+      return {kind:'error', code:'receipt_mismatch'};
+    }
+    return {kind:'success', duplicate: result.duplicate === true};
   } finally {
-    if(activeSubmissionController === submissionController){
-      activeSubmissionController = null;
-    }
+    clearTimeout(timer);
   }
+}
+
+// error/internal is the script's catch-all for an unexpected exception, which can happen after the
+// row was written. The outcome is unknown, and resending the identical body is safe (the server
+// deduplicates by submission_id + fingerprint), so it offers Try again. Never retried automatically.
+const UNCONFIRMED_ERROR_CODES = ['internal'];
+
+function applySaveOutcome(stage, outcome){
+  if(outcome.kind === 'success'){
+    markSaved(stage);
+  } else if(outcome.kind === 'busy' || outcome.kind === 'unconfirmed'
+    || (outcome.kind === 'error' && UNCONFIRMED_ERROR_CODES.includes(outcome.code))){
+    showSaveState('unconfirmed');
+  } else if(outcome.kind === 'closed'){
+    showSaveState('closed');
+  } else {
+    showSaveState('presenter', outcome.code || outcome.kind);
+  }
+}
+
+function showSaveState(state, detail){
+  const card = document.getElementById('save-card');
+  const title = document.getElementById('save-title');
+  const message = document.getElementById('save-message');
+  const retry = document.getElementById('btn-retry');
+  let problem = false;
+  retry.hidden = true;
+  if(state === 'sending'){
+    title.textContent = 'Saving your answers…';
+    message.textContent = 'Please keep this page open.';
+  } else if(state === 'busy'){
+    title.textContent = 'Saving your answers…';
+    message.textContent = `The server is busy. Trying again in ${detail} second${detail === 1 ? '' : 's'}…`;
+  } else if(state === 'unconfirmed'){
+    problem = true;
+    title.textContent = 'Save not confirmed';
+    message.textContent = 'Your answers are still in this browser tab. Check your internet connection, then press Try again.';
+    retry.hidden = false;
+  } else if(state === 'closed'){
+    problem = true;
+    title.textContent = 'This test is closed';
+    message.textContent = 'This version of the test is closed. Please tell the presenter.';
+  } else if(state === 'refused'){
+    problem = true;
+    title.textContent = 'Saving is turned off';
+    message.textContent = `This page cannot save answers: ${detail}. Please tell the presenter.`;
+  } else {
+    problem = true;
+    title.textContent = 'Your answers were not saved';
+    message.textContent = `Please tell the presenter. (Code: ${detail})`;
+  }
+  card.classList.toggle('is-problem', problem);
+}
+
+function markSaved(stage){
+  removeDraft(stage);
+  draft = null;
+  formItems = [];
+  if(stage === 'pre'){
+    showScreen('screen-pre-done');
+  } else {
+    const submitted = document.createElement('button');
+    submitted.id = 'btn-submit';
+    submitted.type = 'button';
+    submitted.className = 'btn btn-saved btn-full btn-lg';
+    submitted.disabled = true;
+    submitted.textContent = 'Submitted!';
+    document.getElementById('post-done-status').replaceChildren(submitted);
+    showScreen('screen-post-done');
+  }
+  document.body.dataset.fa2601Saved = stage;
+  focusElement(stage === 'pre' ? 'pre-done-title' : 'post-done-title');
 }
 
 // ─── Toast ──────────────────────────────────────────────────────────────
@@ -1177,6 +1200,61 @@ function showToast(msg){
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
+
+// ─── Start-up ───────────────────────────────────────────────────────────
+function renderModeBanner(){
+  const banner = document.getElementById('mode-banner');
+  const mode = CONFIG && typeof CONFIG === 'object' ? CONFIG.mode : null;
+  const endpoint = resolveEndpoint();
+  const lines = [];
+  if(mode === 'local' || mode === 'test') lines.push('TEST — synthetic data only');
+  if(!endpoint.ok) lines.push(`Saving is turned off: ${endpoint.reason}.`);
+  if(lines.length === 0){
+    banner.hidden = true;
+    document.documentElement.style.setProperty('--banner-h', '0px');
+    return;
+  }
+  banner.replaceChildren(...lines.map(line => {
+    const row = document.createElement('div');
+    row.textContent = line;
+    return row;
+  }));
+  banner.classList.toggle('is-error', !endpoint.ok);
+  banner.hidden = false;
+  document.documentElement.style.setProperty('--banner-h', `${banner.offsetHeight}px`);
+}
+
+function showStartupProblem(){
+  const el = document.getElementById('startup-error');
+  el.textContent = `This test cannot start. ${INSTRUMENT.problem || 'Something is wrong with this page.'} Please tell the presenter.`;
+  el.hidden = false;
+  document.getElementById('chooser-cards').hidden = true;
+}
+
+function resumeAfterReload(){
+  if(assentGiven !== true) return;
+  const stages = STAGES.filter(stage => loadDraft(stage) !== null);
+  if(stages.length === 1) proceedAfterConsent(stages[0]);
+}
+
+renderModeBanner();
+if(INSTRUMENT.ready){
+  document.getElementById('chooser-sub').textContent = `${INSTRUMENT.pairs.length} short questions. One tap each.`;
+} else {
+  showStartupProblem();
+}
+
+// ─── URL params ─────────────────────────────────────────────────────────
+(function checkParams(){
+  if(!INSTRUMENT.ready) return;
+  const p = new URLSearchParams(location.search);
+  const t = p.get('type');
+  if(t === 'pre' || t === 'post'){
+    chooseType(t);
+    return;
+  }
+  resumeAfterReload();
+})();
 </script>
 </body>
 </html>
