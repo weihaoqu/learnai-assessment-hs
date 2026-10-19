@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import html
+import json
 from html.parser import HTMLParser
 import difflib
 import os
@@ -15,9 +16,44 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 INDEX_PATH = ROOT / "index.html"
-APPS_SCRIPT_PATH = ROOT / "apps-script.js"
+# The legacy (v1) Apps Script keeps its header, row-schema and validation-order checks here.
+# The v2 apps-script.js is covered by the node tests in tests/apps_script_v2.test.mjs.
+APPS_SCRIPT_V1_PATH = ROOT / "legacy" / "apps-script-v1.js"
+ITEMS_PATH = ROOT / "items-v2.js"
+CONFIG_PATH = ROOT / "config-v2.js"
 ASSENT_FIXTURE_PATH = ROOT / "tests" / "fixtures" / "fa2601_assent_authority.txt"
 ASSENT_VERSION = "FA2601-Assent-2026-08-21"
+# Request fields from docs/V2_CONTRACT.md; any other field is rejected by the server.
+CONTRACT_PAYLOAD_FIELDS = {
+    "schema",
+    "instrument_version",
+    "bank_sha256",
+    "selection",
+    "submission_id",
+    "stage",
+    "participant_id",
+    "order",
+    "form",
+    "assent",
+    "assent_version",
+    "coding_background",
+    "answers",
+    "client_started_at",
+    "client_submitted_at",
+}
+FORBIDDEN_INDEX_STRINGS = (
+    "Likert",
+    "likert_confidence",
+    "open_response",
+    "total_score",
+    "Best answer",
+    "Correct!",
+)
+ORDER_TEST_VECTORS = {"57R": "BA", "7A": "BA", "100Z": "BA", "0A": "AB"}
+PROD_EXEC_URL = (
+    "https://script.google.com/macros/s/"
+    "AKfycbw0T56lxoJSiozLd3eW14gPWfg-9qJa6wexN49OrnWqwbXmLgW7vRlRVD11WxVBo678uQ/exec"
+)
 WORD_AUTHORITY_ENV = os.environ.get("FA2601_ASSENT_DOCX")
 WORD_AUTHORITY_PATH = Path(
     WORD_AUTHORITY_ENV
@@ -113,14 +149,38 @@ def check_javascript_syntax(index_source: str) -> None:
         temp.flush()
         subprocess.run(["node", "--check", temp.name], check=True, capture_output=True)
 
-    subprocess.run(
-        ["node", "--check", str(APPS_SCRIPT_PATH)], check=True, capture_output=True
+    for path in (APPS_SCRIPT_V1_PATH, ITEMS_PATH, CONFIG_PATH):
+        subprocess.run(["node", "--check", str(path)], check=True, capture_output=True)
+
+
+def run_node(source: str) -> str:
+    with tempfile.NamedTemporaryFile("w", suffix=".js", encoding="utf-8") as temp:
+        temp.write(source)
+        temp.flush()
+        return subprocess.run(
+            ["node", temp.name], check=True, capture_output=True, text=True
+        ).stdout
+
+
+def load_browser_global(path: Path, name: str) -> dict:
+    """Evaluate a browser settings/data file in node and return window.<name>."""
+    output = run_node(
+        "global.window = {};\n"
+        f"require({json.dumps(str(path))});\n"
+        f"process.stdout.write(JSON.stringify(window.{name}));\n"
     )
+    value = json.loads(output)
+    require(isinstance(value, dict), f"{path.name} does not set window.{name}")
+    return value
+
+
+def strip_scripts(source: str) -> str:
+    return re.sub(r"<script(?:\s[^>]*)?>.*?</script>", "", source, flags=re.DOTALL)
 
 
 def main() -> None:
     index_source = INDEX_PATH.read_text(encoding="utf-8")
-    apps_source = APPS_SCRIPT_PATH.read_text(encoding="utf-8")
+    apps_source = APPS_SCRIPT_V1_PATH.read_text(encoding="utf-8")
 
     assent_html = extract(
         r"const ASSENT_FORM_HTML = `(.*?)`;", index_source, "ASSENT_FORM_HTML"
@@ -234,6 +294,18 @@ def main() -> None:
         "Payload lacks the approved assent version",
     )
     require(not re.search(r"\bconsent\s*:", payload), "Payload still conflates consent and assent")
+    require("schema: 'fa2601-v2'" in payload, "Payload does not declare the v2 schema")
+    payload_fields = set(re.findall(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:", payload, flags=re.MULTILINE))
+    require(
+        payload_fields == CONTRACT_PAYLOAD_FIELDS,
+        "Payload fields differ from the v2 contract: "
+        f"extra={sorted(payload_fields - CONTRACT_PAYLOAD_FIELDS)} "
+        f"missing={sorted(CONTRACT_PAYLOAD_FIELDS - payload_fields)}",
+    )
+    require(
+        not re.search(r"score|total|likert|open_response|analysis|test_type", payload, flags=re.I),
+        "Payload still carries client-side totals, scores, or v1 fields",
+    )
     require("data.consent" not in apps_source, "Backend still treats consent as child assent")
     submit_data = extract_function("submitData", index_source)
     require("mode: 'no-cors'" not in submit_data, "Submission response is still opaque")
@@ -242,6 +314,176 @@ def main() -> None:
     require(
         "result.status !== 'success'" in submit_data,
         "Submission does not reject backend error responses",
+    )
+    require(
+        "method: 'POST'" in submit_data
+        and "'Content-Type': 'text/plain;charset=utf-8'" in submit_data
+        and "body: body" in submit_data,
+        "Submission is not a text/plain POST of the frozen body",
+    )
+    require(
+        "activeSubmissionController = submissionController" in submit_data,
+        "Submission is not abortable by withdrawal",
+    )
+    require(
+        "result.receipt !== submissionId" in submit_data,
+        "Success is accepted without a matching receipt",
+    )
+
+    # Frozen once, retried byte-identical, statuses handled per contract.
+    finish = extract_function("finishAndSave", index_source)
+    require(
+        "if(!draft.frozen)" in finish and "draft.frozen = buildFrozenBody()" in finish,
+        "Finish does not freeze the payload exactly once",
+    )
+    require(
+        finish.index("resolveEndpoint()") < finish.index("buildFrozenBody()"),
+        "Finish freezes before checking that this page may save",
+    )
+    save_loop = extract_function("saveFrozenDraft", index_source)
+    require(
+        "const body = draft.frozen" in save_loop
+        and "submitData(endpoint.url, body, submissionId)" in save_loop,
+        "Retries do not resend the identical frozen body",
+    )
+    require(
+        save_loop.count("generation !== flowGeneration || assentGiven !== true") >= 3,
+        "A late response can act after withdrawal or reset",
+    )
+    require(
+        "const BUSY_RETRY_DELAYS_MS = [1000, 2000, 4000];" in index_source,
+        "Busy retries do not follow the 1, 2, 4 second schedule",
+    )
+    outcome = extract_function("applySaveOutcome", index_source)
+    require(
+        "outcome.kind === 'busy' || outcome.kind === 'unconfirmed'" in outcome
+        and "showSaveState('unconfirmed')" in outcome
+        and "showSaveState('closed')" in outcome
+        and "showSaveState('presenter'" in outcome,
+        "Save outcomes are not mapped to the contract's app behavior",
+    )
+    require(
+        "const UNCONFIRMED_ERROR_CODES = ['internal'];" in index_source
+        and "outcome.kind === 'error' && UNCONFIRMED_ERROR_CODES.includes(outcome.code)" in outcome,
+        "error/internal (outcome unknown, safe to resend) does not offer Try again",
+    )
+    require("Save not confirmed" in index_source, "Unconfirmed saves are not labelled")
+    require(
+        "This version of the test is closed. Please tell the presenter." in index_source,
+        "Closed responses do not use the contract wording",
+    )
+
+    # Checklist markers appear only after a confirmed success.
+    mark_saved = extract_function("markSaved", index_source)
+    require(
+        "showScreen('screen-pre-done')" in mark_saved
+        and "submitted.id = 'btn-submit'" in mark_saved
+        and "submitted.textContent = 'Submitted!'" in mark_saved
+        and "document.body.dataset.fa2601Saved = stage" in mark_saved,
+        "Saved screens do not expose the checklist markers",
+    )
+    require(
+        index_source.count("btn-submit") == 1 and index_source.count("Submitted!") == 1,
+        "#btn-submit / Submitted! appears outside the confirmed-success path",
+    )
+    require(
+        index_source.count("showScreen('screen-pre-done')") == 1,
+        "The pre-test done screen can be shown outside the confirmed-success path",
+    )
+    require(
+        "markSaved(stage)" in outcome and "outcome.kind === 'success'" in outcome,
+        "markSaved is not gated on a success outcome",
+    )
+    require('id="screen-pre-done"' in index_source, "#screen-pre-done is missing")
+
+    # Drafts: version-free per-stage keys, cleared by withdrawal/reset.
+    require("const DRAFT_KEY_PREFIX = 'fa2601_v2_draft_';" in index_source, "Draft key changed")
+    reset_flow = extract_function("resetResearchFlow", index_source)
+    require(
+        "flowGeneration++" in reset_flow and "STAGES.forEach(removeDraft)" in reset_flow,
+        "Withdrawal/reset does not delete both drafts and invalidate in-flight saves",
+    )
+    require(
+        "crypto.randomUUID()" in index_source,
+        "submission_id is not a browser-generated UUID",
+    )
+
+    # No scores, keys, or v1 analysis anywhere in the app.
+    for forbidden in FORBIDDEN_INDEX_STRINGS:
+        require(forbidden not in index_source, f"index.html still contains {forbidden!r}")
+    require(
+        not re.search(r"score", index_source, flags=re.I),
+        "index.html still mentions a score",
+    )
+    for forbidden in ("SCENARIOS", "CAT_INSIGHTS", "generateAnalysis", "LEVELS", "images/scenarios"):
+        require(forbidden not in index_source, f"index.html still contains v1 {forbidden!r}")
+
+    # Generated items and settings.
+    items = load_browser_global(ITEMS_PATH, "FA2601_ITEMS")
+    require("keys" not in items, "items-v2.js exposes answer keys to the browser")
+    require(
+        "keys" not in ITEMS_PATH.read_text(encoding="utf-8").split("\n", 1)[1],
+        "items-v2.js mentions answer keys",
+    )
+    version = items.get("instrument_version")
+    require(isinstance(version, str) and version, "items-v2.js has no instrument_version")
+    config = load_browser_global(CONFIG_PATH, "FA2601_CONFIG")
+    require(config.get("mode") == "local", "Committed config-v2.js is not in local mode")
+    require(config.get("selection") in items.get("selections", {}), "Configured selection is missing")
+    endpoints = config.get("endpoints", {})
+    require(
+        endpoints.get("local") == "/exec"
+        and endpoints.get("test") == "REPLACE_WITH_TEST_EXEC_URL"
+        and endpoints.get("prod") == PROD_EXEC_URL,
+        "config-v2.js endpoints differ from the agreed values",
+    )
+    script_tags = re.findall(r"<script(?:\s[^>]*)?>", index_source)
+    sha12 = str(items.get("bank_sha256", ""))[:12]
+    items_tag = f'<script src="items-v2.js?v={version}&amp;h={sha12}">'
+    config_tag = f'<script src="config-v2.js?v={version}&amp;h={sha12}">'
+    require(
+        script_tags[:3] == [items_tag, config_tag, "<script>"],
+        f"items-v2.js and config-v2.js must load first with ?v={version}: {script_tags[:3]}",
+    )
+    require(
+        "const ITEMS = window.FA2601_ITEMS;" in index_source
+        and "if(!INSTRUMENT.ready) return;" in index_source,
+        "The app does not refuse to start without its items",
+    )
+
+    # Form order matches the contract vectors.
+    order_body = extract_function("fa2601Order", index_source)
+    order_output = run_node(
+        f"function fa2601Order(code) {{{order_body}}}\n"
+        f"const vectors = {json.dumps(ORDER_TEST_VECTORS)};\n"
+        "const out = {};\n"
+        "for (const code of Object.keys(vectors)) out[code] = fa2601Order(code);\n"
+        "process.stdout.write(JSON.stringify(out));\n"
+    )
+    require(
+        json.loads(order_output) == ORDER_TEST_VECTORS,
+        f"fa2601Order disagrees with the contract vectors: {order_output}",
+    )
+
+    # Submission guard: local only on loopback, test never prod, prod only on Pages.
+    endpoint_guard = extract_function("resolveEndpoint", index_source)
+    for token in (
+        "CONFIG.mode === 'local'",
+        "LOCAL_HOSTNAMES.includes(host)",
+        "CONFIG.mode === 'test'",
+        "url === TEST_ENDPOINT_PLACEHOLDER",
+        "url === PROD_EXEC_URL",
+        "CONFIG.mode === 'prod'",
+        "host !== PROD_HOSTNAME",
+    ):
+        require(token in endpoint_guard, f"Submission guard lacks {token!r}")
+    require(
+        "TEST — synthetic data only" in index_source,
+        "Local/test builds do not show the synthetic-data banner",
+    )
+    require(
+        "btn-submit" not in strip_scripts(index_source),
+        "#btn-submit exists in the static page before any save",
     )
 
     require(
@@ -270,6 +512,15 @@ def main() -> None:
     positions = [apps_source.index(token) for token in order_tokens]
     require(positions == sorted(positions), "Apps Script validation order is unsafe")
 
+    save_draft = extract_function("saveDraft", index_source)
+    load_draft = extract_function("loadDraft", index_source)
+    save_frozen = extract_function("saveFrozenDraft", index_source)
+    require("identity: draft.identity" in save_draft, "Drafts do not record their instrument and destination")
+    require("sameIdentity(saved.identity, draftIdentity())" in load_draft, "Drafts resume without an identity check")
+    require("sameIdentity(draft.identity, draftIdentity())" in save_frozen, "Frozen drafts are resent without an identity check")
+    same_identity = extract_function("sameIdentity", index_source)
+    for field in ("instrument_version", "bank_sha256", "selection", "mode", "endpoint"):
+        require(f"'{field}'" in same_identity, f"Draft identity does not compare {field}")
     check_javascript_syntax(index_source)
     if checked_word_authority:
         print("PASS: committed assent fixture matches the saved Word authority")
@@ -278,9 +529,11 @@ def main() -> None:
     print("PASS: embedded canonical text matches the committed assent fixture")
     print("PASS: accepted-view assent text and identifiers")
     print("PASS: once-per-session assent routing and browser-storage limits")
-    print("PASS: versioned affirmative payload without redundant consent")
-    print("PASS: withdrawal and confirmed-submission safeguards")
-    print("PASS: Apps Script validation order and row schemas")
+    print("PASS: v2 payload fields, versioned affirmative assent, no consent or totals")
+    print("PASS: withdrawal, frozen-body retries, and confirmed-submission safeguards")
+    print("PASS: checklist markers only after confirmed success; no scores in the app")
+    print("PASS: items/config load order, local default mode, and form-order vectors")
+    print("PASS: legacy v1 Apps Script validation order and row schemas")
     print("PASS: JavaScript syntax")
 
 
