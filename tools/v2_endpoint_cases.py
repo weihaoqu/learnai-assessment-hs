@@ -2,6 +2,7 @@
 """Synthetic cases against a real v2 Apps Script deployment (docs/V2_CONTRACT.md).
 
     python3 tools/v2_endpoint_cases.py run <exec_url> <out_dir> --synthetic-rows-ok
+    (SELECTION below must match the deployment's ACTIVE_SELECTIONS.)
     python3 tools/v2_endpoint_cases.py check <out_dir> <pre.csv> <post.csv>
 
 run   sends fixed synthetic submissions (codes 91Z-97Z) and the rejection cases,
@@ -30,7 +31,8 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[1]
 EXEC_URL = re.compile(r'^https://script\.google\.com/macros/s/([A-Za-z0-9_-]+)/exec$')
 ASSENT_VERSION = 'FA2601-Assent-2026-08-21'
-SELECTION = 'C6'
+SELECTION = 'B8'  # must equal ACTIVE_SELECTIONS on the deployment
+INACTIVE = 'C6'
 SERVER_TZ = ZoneInfo('America/New_York')
 UUID_V4 = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$')
 CODE = re.compile(r'^([0-9]|[1-9][0-9]|100)[A-Z]$')
@@ -184,7 +186,8 @@ def run(url, out_dir):
         (out_dir / 'results.json').write_text(json.dumps(results, indent=1), encoding='utf-8')
         raise SystemExit('Stopped before any POST: the deployment does not identify as fa2601-v2.')
 
-    all_right = ['right'] * 6
+    n = len(man['selections'][SELECTION])
+    all_right = ['right'] * n
     # Rejections: none of these may write a row.
     b = body_for(man, '91Z', 'pre', answers(man, '91Z', 'pre', all_right), 'beginner')
     case('not assented', dict(b, assent='no', submission_id=str(uuid.uuid4())), 'not_assented')
@@ -192,24 +195,24 @@ def run(url, out_dir):
           'timestamp': b['client_submitted_at'], 'total_score': 0}
     case('v1 payload is closed', v1, 'closed')
     case('code 101A', dict(b, participant_id='101A', submission_id=str(uuid.uuid4())), 'error', 'bad_participant_id')
-    case('B8 not active', dict(b, selection='B8', submission_id=str(uuid.uuid4())), 'error', 'selection_inactive')
+    case(f'{INACTIVE} not active', dict(b, selection=INACTIVE, submission_id=str(uuid.uuid4())), 'error', 'selection_inactive')
     wrong_form = 'B' if b['form'] == 'A' else 'A'
     case('form does not match code', dict(b, form=wrong_form, submission_id=str(uuid.uuid4())), 'error', 'bad_form')
     case('wrong bank hash', dict(b, bank_sha256='0' * 64, submission_id=str(uuid.uuid4())), 'error', 'manifest_mismatch')
     case('unknown field', dict(b, total_score=6, submission_id=str(uuid.uuid4())), 'error', 'unknown_field')
 
     # Writes.
-    w1 = body_for(man, '91Z', 'pre', answers(man, '91Z', 'pre', ['right', 'wrong', 'right', 'right', 'wrong', 'right']), 'beginner')
+    w1 = body_for(man, '91Z', 'pre', answers(man, '91Z', 'pre', (['right', 'wrong', 'right', 'right', 'wrong', 'right'] + ['right', 'wrong'])[:n]), 'beginner')
     case('pre 91Z, all answered', w1, 'success', writes=True, retry=True)
     case('pre 91Z resent, same body', w1, 'success', dup=True, retry=True)
     first = next(iter(w1['answers']))
     changed = dict(w1, answers=dict(w1['answers'], **{first: 'C' if w1['answers'][first] == 'D' else 'D'}))
     case('pre 91Z, same ID, different answers', changed, 'conflict', retry=True)
-    w2 = body_for(man, '92Z', 'pre', answers(man, '92Z', 'pre', ['right', 'skip', 'wrong', 'right', 'stop', 'stop']))
-    case('pre 92Z, one skipped, two not reached', w2, 'success', writes=True, retry=True)
+    w2 = body_for(man, '92Z', 'pre', answers(man, '92Z', 'pre', ['right', 'skip', 'wrong', 'right'] + ['stop'] * (n - 4)))
+    case('pre 92Z, one skipped, the rest not reached', w2, 'success', writes=True, retry=True)
     w3 = body_for(man, '91Z', 'post', answers(man, '91Z', 'post', all_right))
     case('post 91Z, all answered', w3, 'success', writes=True, retry=True)
-    w4 = body_for(man, '91Z', 'pre', answers(man, '91Z', 'pre', ['skip'] * 6), 'prefer_not')
+    w4 = body_for(man, '91Z', 'pre', answers(man, '91Z', 'pre', ['skip'] * n), 'prefer_not')
     case('pre 91Z again, new ID (duplicate-code flag)', w4, 'success', writes=True, retry=True)
 
     # Five different students at the same moment.

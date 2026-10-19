@@ -6,7 +6,7 @@
 // To run the local tests, set 'local' in your working copy and do not commit it.
 window.FA2601_CONFIG = {
   mode: 'prod',
-  selection: 'C6',
+  selection: 'B8',
   endpoints: {
     local: '/exec',
     test: 'REPLACE_WITH_TEST_EXEC_URL',
