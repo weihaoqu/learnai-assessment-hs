@@ -10,6 +10,6 @@ window.FA2601_CONFIG = {
   endpoints: {
     local: '/exec',
     test: 'REPLACE_WITH_TEST_EXEC_URL',
-    prod: 'https://script.google.com/macros/s/AKfycbw0T56lxoJSiozLd3eW14gPWfg-9qJa6wexN49OrnWqwbXmLgW7vRlRVD11WxVBo678uQ/exec'
+    prod: 'https://script.google.com/macros/s/AKfycbzunWMB8KF0DWR336e3evImpQrBwjZ-sk4TRBZoTmxj7a4pBOgqjrOrFezkal4mfRfsrw/exec'
   }
 };

@@ -52,7 +52,7 @@ FORBIDDEN_INDEX_STRINGS = (
 ORDER_TEST_VECTORS = {"57R": "BA", "7A": "BA", "100Z": "BA", "0A": "AB"}
 PROD_EXEC_URL = (
     "https://script.google.com/macros/s/"
-    "AKfycbw0T56lxoJSiozLd3eW14gPWfg-9qJa6wexN49OrnWqwbXmLgW7vRlRVD11WxVBo678uQ/exec"
+    "AKfycbzunWMB8KF0DWR336e3evImpQrBwjZ-sk4TRBZoTmxj7a4pBOgqjrOrFezkal4mfRfsrw/exec"
 )
 WORD_AUTHORITY_ENV = os.environ.get("FA2601_ASSENT_DOCX")
 WORD_AUTHORITY_PATH = Path(
