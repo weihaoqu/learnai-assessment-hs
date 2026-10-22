@@ -47,8 +47,9 @@ p{line-height:1.5}
 .btn-primary:disabled{background:#94a3b8;cursor:not-allowed;transform:none}
 .btn-outline{background:transparent;color:var(--primary);border:2px solid var(--primary)}
 .btn-outline:hover{background:rgba(13,148,136,.06)}
-.btn-skip{background:transparent;color:var(--text);border:2px solid #cbd5e1}
-.btn-skip:hover{background:#f8fafc}
+.btn-skip{display:block;margin:8px auto 0;padding:12px 16px;min-height:44px;background:transparent;border:none;color:var(--text-light);font-size:.9rem;font-weight:500;font-family:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer;-webkit-appearance:none}
+.btn-skip:hover{color:var(--text)}
+.btn-skip:focus-visible{outline:3px solid var(--text);outline-offset:2px;border-radius:4px}
 .btn-saved,.btn-saved:disabled{background:var(--primary-dark);color:#fff;cursor:default;transform:none}
 .btn-full{width:100%}
 .btn-lg{padding:16px 32px;font-size:1.1rem;border-radius:var(--radius)}
@@ -244,7 +245,7 @@ p{line-height:1.5}
       <button class="btn btn-outline" id="btn-back" type="button" onclick="goBack()">Back</button>
       <button class="btn btn-primary" id="btn-next" type="button" onclick="goNext()" disabled>Next</button>
     </div>
-    <button class="btn btn-skip btn-full" id="btn-skip" type="button" onclick="skipQuestion()">Skip this question</button>
+    <button class="btn-skip" id="btn-skip" type="button" onclick="skipQuestion()">Skip this question</button>
   </div>
 
   <!-- SCREEN: Review -->
