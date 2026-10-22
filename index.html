@@ -780,7 +780,7 @@ function startQuiz(){
   }
   const privateCode = normalizeCode(document.getElementById('inp-code').value);
   if(!privateCode){
-    showToast('Please enter your private code');
+    showToast('Please enter your Private Code');
     return;
   }
   if(!CODE_PATTERN.test(privateCode)){
