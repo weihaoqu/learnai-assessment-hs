@@ -43,7 +43,7 @@ function fa2601Order(code) {            // code already normalized: trim().toUpp
 | `stage` | `"pre"` or `"post"` |
 | `participant_id` | Matches `^([0-9]\|[1-9][0-9]\|100)[A-Z]$` after normalization |
 | `order`, `form` | Must equal `fa2601Order(code)` and `order[stage==='pre'?0:1]` |
-| `assent`, `assent_version` | `"yes"` and `"FA2601-Assent-2026-08-21"` |
+| `assent`, `assent_version` | `"yes"` and `"FA2601-Assent-2026-10-22"` (before 2026-10-22: `"FA2601-Assent-2026-08-21"`) |
 | `coding_background` | Pre: one of `""` (skipped), `none`, `beginner`, `intermediate`, `advanced`, `prefer_not`. Post: `""` |
 | `answers` | An object whose keys are a subset of the form's item IDs. Each value is `"A"`–`"D"` (answered) or `null` (skipped). A missing key means not reached. No extra keys. |
 | `client_started_at`, `client_submitted_at` | ISO-8601 UTC strings, e.g. `2026-11-07T14:03:00.000Z`. Stored as text, never used for ordering. |

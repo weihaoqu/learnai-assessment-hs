@@ -22,7 +22,7 @@ APPS_SCRIPT_V1_PATH = ROOT / "legacy" / "apps-script-v1.js"
 ITEMS_PATH = ROOT / "items-v2.js"
 CONFIG_PATH = ROOT / "config-v2.js"
 ASSENT_FIXTURE_PATH = ROOT / "tests" / "fixtures" / "fa2601_assent_authority.txt"
-ASSENT_VERSION = "FA2601-Assent-2026-08-21"
+ASSENT_VERSION = "FA2601-Assent-2026-10-22"
 # Request fields from docs/V2_CONTRACT.md; any other field is rejected by the server.
 CONTRACT_PAYLOAD_FIELDS = {
     "schema",
@@ -54,11 +54,10 @@ PROD_EXEC_URL = (
     "https://script.google.com/macros/s/"
     "AKfycbzunWMB8KF0DWR336e3evImpQrBwjZ-sk4TRBZoTmxj7a4pBOgqjrOrFezkal4mfRfsrw/exec"
 )
+# The saved Word file for the 2026-08-21 assent no longer matches the 2026-10-22
+# text, so the Word check runs only when FA2601_ASSENT_DOCX names a file.
 WORD_AUTHORITY_ENV = os.environ.get("FA2601_ASSENT_DOCX")
-WORD_AUTHORITY_PATH = Path(
-    WORD_AUTHORITY_ENV
-    or "/Users/oreo/Dropbox/isec26-HS-IRB/FA2601 (Qu) Revised Response 8.21.2026.docx"
-)
+WORD_AUTHORITY_PATH = Path(WORD_AUTHORITY_ENV) if WORD_AUTHORITY_ENV else None
 
 
 class VisibleTextParser(HTMLParser):
@@ -182,9 +181,16 @@ def main() -> None:
     index_source = INDEX_PATH.read_text(encoding="utf-8")
     apps_source = APPS_SCRIPT_V1_PATH.read_text(encoding="utf-8")
 
+    client_version = extract(
+        r"const ASSENT_VERSION = '([^']+)';", index_source, "ASSENT_VERSION"
+    )
+    require(
+        client_version == ASSENT_VERSION,
+        f"index.html ASSENT_VERSION is {client_version!r}, not {ASSENT_VERSION!r}",
+    )
     assent_html = extract(
         r"const ASSENT_FORM_HTML = `(.*?)`;", index_source, "ASSENT_FORM_HTML"
-    ).replace("${ASSENT_VERSION}", ASSENT_VERSION)
+    ).replace("${ASSENT_VERSION}", client_version)
     parser = VisibleTextParser()
     parser.feed(assent_html)
     visible_assent = normalize("".join(parser.parts))
@@ -214,7 +220,7 @@ def main() -> None:
         )
 
     checked_word_authority = False
-    if WORD_AUTHORITY_PATH.exists():
+    if WORD_AUTHORITY_PATH and WORD_AUTHORITY_PATH.exists():
         word_text = subprocess.run(
             ["textutil", "-convert", "txt", "-stdout", str(WORD_AUTHORITY_PATH)],
             check=True,

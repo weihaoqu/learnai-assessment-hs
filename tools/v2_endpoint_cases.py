@@ -30,7 +30,7 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 EXEC_URL = re.compile(r'^https://script\.google\.com/macros/s/([A-Za-z0-9_-]+)/exec$')
-ASSENT_VERSION = 'FA2601-Assent-2026-08-21'
+ASSENT_VERSION = 'FA2601-Assent-2026-10-22'
 SELECTION = 'B8'  # must equal ACTIVE_SELECTIONS on the deployment
 INACTIVE = 'C6'
 SERVER_TZ = ZoneInfo('America/New_York')
