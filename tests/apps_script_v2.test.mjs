@@ -11,7 +11,7 @@ import {
   createFakeGas, seedLegacy, legacyHashes, sha256Hex, SCRIPT_PATH, ROOT, LEGACY_TABS, V2_TABS,
 } from './fake_gas.mjs';
 
-const ASSENT_VERSION = 'FA2601-Assent-2026-08-21';
+const ASSENT_VERSION = 'FA2601-Assent-2026-10-22';
 const SOURCE = fs.readFileSync(SCRIPT_PATH, 'utf8');
 
 // Copied verbatim from docs/V2_CONTRACT.md, so the script is checked against the contract.
