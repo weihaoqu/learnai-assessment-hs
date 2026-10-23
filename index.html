@@ -405,7 +405,7 @@ function deploymentId(url){
 }
 
 // ─── Student assent (HS version) ───────────────────────────────────────
-const ASSENT_VERSION = 'FA2601-Assent-2026-08-21';
+const ASSENT_VERSION = 'FA2601-Assent-2026-10-22';
 const ASSENT_SESSION_KEY = `fa2601_assent_${ASSENT_VERSION}`;
 
 function hasSessionAssent(){
@@ -435,18 +435,20 @@ const ASSENT_FORM_HTML = `
     <li>make up a secret study code, such as 57R, made from a number from 0 to 100 and one letter A-Z. Do not use your name, initials, birthday, phone number, school ID, nickname, or anything that identifies you. You will type the same code on each survey and test so your answers can be matched without using your name;</li>
     <li>complete a short pre-session attitude survey in Google Forms (about 5 minutes);</li>
     <li>take a short knowledge pre-test on the LearnAI Assessment HS web app (<a href="https://weihaoqu.github.io/learnai-assessment-hs/">https://weihaoqu.github.io/learnai-assessment-hs/</a>) (about 5 minutes);</li>
-    <li>watch Dr. Qu present slides on the room display or by Zoom screen share;</li>
-    <li>use the high-school LearnAI Course website (<a href="https://weihaoqu.github.io/learnai-course-hs/">https://weihaoqu.github.io/learnai-course-hs/</a>). You may see the HS Home page, Course 1 (<a href="https://weihaoqu.github.io/learnai-course-hs/claude-code-course.html">https://weihaoqu.github.io/learnai-course-hs/claude-code-course.html</a>), and Course 2 (<a href="https://weihaoqu.github.io/learnai-course-hs/agentic-engineering-quest.html">https://weihaoqu.github.io/learnai-course-hs/agentic-engineering-quest.html</a>). Dr. Qu will tell you which pages and activities to use during the live session;</li>
-    <li>watch Dr. Qu demonstrate AI tools using Dr. Qu's own account, subscription, API access, or demonstration environment;</li>
+    <li>choose one of five courses on the high-school LearnAI Course website (<a href="https://weihaoqu.github.io/learnai-course-hs/">https://weihaoqu.github.io/learnai-course-hs/</a>) and follow its learning activities, which include AI-generated narration;</li>
+    <li>use the free version of ChatGPT yourself in a web browser to try practice prompts and read its responses during the course activities;</li>
     <li>take a short knowledge post-test on the LearnAI Assessment HS web app using the same code (about 5 minutes);</li>
     <li>complete a short post-session attitude survey in Google Forms (about 5 minutes); and</li>
     <li>receive a short debriefing at the end, where Dr. Qu explains the purpose of the study again and answers questions.</li>
   </ul>
-  <p>You will use an internet-enabled device to open the study links. For an in-person session, you should bring your own laptop or device and charger because Monmouth University lab computers will not be used. For an online session, you will use your own device to join Zoom and open the study links. You do not need to create an AI account, log in to an AI tool, install software, enter payment information, buy a subscription, or use a personal API key to be in this study. You will not be asked to type your name, contact information, school ID, or other personal information into any AI tool. You will NOT be audio- or video-recorded. If Zoom is used, the Zoom session will not be recorded, and you do not have to show your full real name on Zoom. The study will not collect your school records or grades.</p>
+  <p>You will use an internet-enabled device to open the study links. For an in-person session, you should bring your own laptop or device and charger because Monmouth University lab computers will not be used. For an online session, you will use your own device to join Zoom and open the study links.</p>
+  <p>ChatGPT may ask you to create or sign in to your own free account. You do not need to install software, enter payment information, buy a paid subscription, or use a personal API key for these ChatGPT activities. Do not share an account or password. You must be at least 13 to use ChatGPT, and if you are under 18, you must have your parent or guardian&rsquo;s permission to use it. If you cannot access ChatGPT or reach a free-use limit, tell Dr. Qu; do not pay to continue.</p>
+  <p>What you type into ChatGPT is sent to OpenAI, the company that provides it. OpenAI handles your account information and chats under its own privacy policy and settings. Do not put your name, contact information, school ID, study code, survey or test answers, or other private information into your practice prompts or uploads. Creating an account may require information such as an email address; this is separate from your research surveys and tests.</p>
+  <p>You will NOT be audio- or video-recorded. If Zoom is used, the Zoom session will not be recorded, and you do not have to show your full real name on Zoom. The study will not collect your school records or grades.</p>
   <h4>Costs or Payments to You:</h4>
   <p>You will not have to pay anything, and you won&rsquo;t be paid for being in this study.</p>
   <h4>Risks/Discomforts:</h4>
-  <p>There are no foreseeable risks beyond those of everyday life. You might feel a little frustrated when learning a new AI tool, but this is no greater than what you would feel during normal computer use.</p>
+  <p>You might feel a little frustrated when learning a new AI tool. ChatGPT can give incorrect or upsetting responses. You can stop using it and tell Dr. Qu if this happens. Information you send to ChatGPT is handled by OpenAI, so avoid sharing private information.</p>
   <h4>Benefits:</h4>
   <p>There is no direct benefit to you. You may gain hands-on experience with AI tools for software engineering. By being in this study, you also help us learn how to design better AI learning programs for students.</p>
   <h4>In Case of Injury:</h4>
@@ -580,7 +582,7 @@ function hasKey(object, key){
 }
 
 // ─── Draft (sessionStorage, one per stage) ──────────────────────────────
-// A draft belongs to one instrument (version, bank hash, selection) and one
+// A draft belongs to one assent version, one instrument (version, bank hash, selection), and one
 // destination (mode, endpoint). It is resumed or resent only on a page with the
 // same identity; anything else is cleared, never sent (a test draft must never
 // reach production, and old answers must never carry a newer bank's version).
@@ -589,6 +591,7 @@ let draftNotice = '';
 function draftIdentity(){
   const endpoint = resolveEndpoint();
   return {
+    assent_version: ASSENT_VERSION,
     instrument_version: ITEMS && ITEMS.instrument_version,
     bank_sha256: ITEMS && ITEMS.bank_sha256,
     selection: CONFIG && CONFIG.selection,
@@ -599,7 +602,7 @@ function draftIdentity(){
 
 function sameIdentity(a, b){
   if(!a || typeof a !== 'object' || !b) return false;
-  return ['instrument_version', 'bank_sha256', 'selection', 'mode', 'endpoint']
+  return ['assent_version', 'instrument_version', 'bank_sha256', 'selection', 'mode', 'endpoint']
     .every(field => typeof a[field] === 'string' && a[field] !== '' && a[field] === b[field]);
 }
 
@@ -644,11 +647,11 @@ function loadDraft(stage){
   } catch(e){
     saved = null;
   }
-  // Identity first: a draft for another instrument or destination is cleared
+  // Identity first: a draft for another assent, instrument, or destination is cleared
   // with a notice, before it is checked against this page's questions.
   if(saved && typeof saved === 'object' && !Array.isArray(saved) && !sameIdentity(saved.identity, draftIdentity())){
     removeDraft(stage);
-    draftNotice = 'Answers saved earlier in this browser were for a different version of this test, so they were cleared. Please start again.';
+    draftNotice = 'Answers saved earlier in this browser were for a different version of this test or assent form, so they were cleared. Please start again.';
     return null;
   }
   if(!isValidDraft(saved, stage)){

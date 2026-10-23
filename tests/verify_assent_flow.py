@@ -21,8 +21,9 @@ INDEX_PATH = ROOT / "index.html"
 APPS_SCRIPT_V1_PATH = ROOT / "legacy" / "apps-script-v1.js"
 ITEMS_PATH = ROOT / "items-v2.js"
 CONFIG_PATH = ROOT / "config-v2.js"
-ASSENT_FIXTURE_PATH = ROOT / "tests" / "fixtures" / "fa2601_assent_authority.txt"
-ASSENT_VERSION = "FA2601-Assent-2026-08-21"
+HISTORICAL_ASSENT_FIXTURE_PATH = ROOT / "tests" / "fixtures" / "fa2601_assent_authority.txt"
+ASSENT_FIXTURE_PATH = ROOT / "tests" / "fixtures" / "fa2601_assent_2026_10_22.txt"
+ASSENT_VERSION = "FA2601-Assent-2026-10-22"
 # Request fields from docs/V2_CONTRACT.md; any other field is rejected by the server.
 CONTRACT_PAYLOAD_FIELDS = {
     "schema",
@@ -54,6 +55,8 @@ PROD_EXEC_URL = (
     "https://script.google.com/macros/s/"
     "AKfycbzunWMB8KF0DWR336e3evImpQrBwjZ-sk4TRBZoTmxj7a4pBOgqjrOrFezkal4mfRfsrw/exec"
 )
+# This optional Word check is historical: it verifies only the preserved 2026-08-21 fixture.
+# The current wording fixture is a regression baseline, not evidence of IRB approval.
 WORD_AUTHORITY_ENV = os.environ.get("FA2601_ASSENT_DOCX")
 WORD_AUTHORITY_PATH = Path(
     WORD_AUTHORITY_ENV
@@ -230,8 +233,8 @@ def main() -> None:
         )
         normalized_word = normalize(word_text)
         require(
-            expected_assent in normalized_word,
-            "Committed assent fixture does not match the saved Word authority",
+            normalize(HISTORICAL_ASSENT_FIXTURE_PATH.read_text(encoding="utf-8")) in normalized_word,
+            "Historical 2026-08-21 fixture does not match the saved Word authority",
         )
         checked_word_authority = True
     elif WORD_AUTHORITY_ENV:
@@ -241,7 +244,7 @@ def main() -> None:
     require("IRB Protocol: FA2601" in visible_assent, "FA2601 protocol is not displayed")
     require(
         f"Assent Version: {ASSENT_VERSION}" in visible_assent,
-        "Approved assent version is not displayed",
+        "Current assent wording version is not displayed",
     )
 
     for forbidden in (
@@ -276,7 +279,7 @@ def main() -> None:
     require("assent: 'yes'" in payload, "Payload lacks affirmative assent")
     require(
         "assent_version: ASSENT_VERSION" in payload,
-        "Payload lacks the approved assent version",
+        "Payload lacks the current assent wording version",
     )
     require(not re.search(r"\bconsent\s*:", payload), "Payload still conflates consent and assent")
     require("schema: 'fa2601-v2'" in payload, "Payload does not declare the v2 schema")
@@ -512,14 +515,14 @@ def main() -> None:
     require("sameIdentity(saved.identity, draftIdentity())" in load_draft, "Drafts resume without an identity check")
     require("sameIdentity(draft.identity, draftIdentity())" in save_frozen, "Frozen drafts are resent without an identity check")
     same_identity = extract_function("sameIdentity", index_source)
-    for field in ("instrument_version", "bank_sha256", "selection", "mode", "endpoint"):
+    for field in ("assent_version", "instrument_version", "bank_sha256", "selection", "mode", "endpoint"):
         require(f"'{field}'" in same_identity, f"Draft identity does not compare {field}")
     check_javascript_syntax(index_source)
     if checked_word_authority:
-        print("PASS: committed assent fixture matches the saved Word authority")
+        print("PASS: historical 2026-08-21 fixture matches the saved Word authority")
     else:
-        print("SKIP: local Word authority unavailable; verified committed fixture instead")
-    print("PASS: embedded canonical text matches the committed assent fixture")
+        print("SKIP: historical Word authority unavailable; no Word/IRB approval verification performed")
+    print("PASS: current displayed wording matches its regression fixture (not an approval check)")
     print("PASS: accepted-view assent text and identifiers")
     print("PASS: once-per-session assent routing and browser-storage limits")
     print("PASS: v2 payload fields, versioned affirmative assent, no consent or totals")
