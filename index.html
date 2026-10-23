@@ -182,7 +182,7 @@ p{line-height:1.5}
       </div>
       <div class="non-assent-info" id="non-assent-info" role="status">
         <strong id="non-assent-title">You selected I DO NOT AGREE.</strong>
-        <span id="non-assent-message">You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a research matching code, and do not complete the pre-test, post-test, or research surveys.</span>
+        <span id="non-assent-message">You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a Private Code, and do not complete the pre-test, post-test, or research surveys.</span>
       </div>
       <div class="notice-error" id="startup-error" role="alert" hidden></div>
       <div class="chooser-cards" id="chooser-cards">
@@ -216,7 +216,7 @@ p{line-height:1.5}
         <label for="inp-code">Your Private Code</label>
         <input type="text" id="inp-code" placeholder="e.g., 57R" maxlength="4" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-describedby="code-help">
       </div>
-      <p id="code-help" style="font-size:.8rem;color:var(--text-light);text-align:center">Make up a number from 0 to 100 plus one letter A-Z, like <strong>57R</strong>. Use the same code on every survey and test.</p>
+      <p id="code-help" style="font-size:.8rem;color:var(--text-light);text-align:center">Make up a 2-digit number from 10 to 99 plus one letter A-Z, like <strong>57R</strong>. Use the same Private Code on every survey and test.</p>
       <div class="input-group" id="bg-group">
         <label for="inp-background">Coding Background (optional)</label>
         <select id="inp-background">
@@ -307,7 +307,9 @@ p{line-height:1.5}
 // config-v2.js sets window.FA2601_CONFIG. See docs/V2_CONTRACT.md.
 const SCHEMA = 'fa2601-v2';
 const STAGES = ['pre', 'post'];
-const CODE_PATTERN = /^([0-9]|[1-9][0-9]|100)[A-Z]$/;
+// The app takes only the 10 to 99 codes it asks for (Cui, 2026-10-22); the server
+// still accepts 0 to 100, a superset, so its form-order rule is unchanged.
+const CODE_PATTERN = /^[1-9][0-9][A-Z]$/;
 const UUID_V4_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 const BACKGROUND_VALUES = ['', 'none', 'beginner', 'intermediate', 'advanced', 'prefer_not'];
@@ -528,7 +530,7 @@ function showNonAssentInfo(){
   const title = document.getElementById('non-assent-title');
   const message = document.getElementById('non-assent-message');
   title.textContent = 'You selected I DO NOT AGREE.';
-  message.textContent = 'You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a research matching code, and do not complete the pre-test, post-test, or research surveys.';
+  message.textContent = 'You may still join the educational AI training, but this research app will not collect survey or test data from you. Do not create or enter a Private Code, and do not complete the pre-test, post-test, or research surveys.';
   if(info) info.classList.add('active');
 }
 
@@ -780,11 +782,11 @@ function startQuiz(){
   }
   const privateCode = normalizeCode(document.getElementById('inp-code').value);
   if(!privateCode){
-    showToast('Please enter your private code');
+    showToast('Please enter your Private Code');
     return;
   }
   if(!CODE_PATTERN.test(privateCode)){
-    showToast('Use a code like 57R: number 0-100 plus one letter A-Z');
+    showToast('Use a Private Code like 57R: a 2-digit number from 10 to 99 plus one letter A-Z');
     return;
   }
   let background = '';

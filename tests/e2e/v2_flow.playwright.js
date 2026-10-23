@@ -257,6 +257,10 @@
     await page.fill('#inp-code', '101A');
     await page.click('#btn-start');
     check('invalid code 101A is refused', (await activeScreen()) === 'screen-welcome');
+    // The app takes only 10 to 99 plus a letter (Cui, 2026-10-22).
+    await page.fill('#inp-code', '7A');
+    await page.click('#btn-start');
+    check('code 7A (below 10) is refused', (await activeScreen()) === 'screen-welcome');
     await startStage(' 57r', 'beginner');
 
     const itemIds = inst.pairs.map(pair => `${pair}-B`); // 57R -> BA, so pre uses form B
@@ -391,12 +395,12 @@
     await inject('none', 0);
     await freshSession('/?type=pre');
     await agree();
-    await startStage('0A'); // 0A -> AB, pre uses form A; background left unselected
+    await startStage('17A'); // 17A -> AB (the app takes 10 to 99 only), pre uses form A; background left unselected
     const itemIds = inst.pairs.map(pair => `${pair}-A`);
     const plan = itemIds.map((_, i) => (i === 0 ? 'C' : null));
     await answerAll(itemIds, inst.items, plan);
     const id = JSON.parse((await storage())['fa2601_v2_draft_pre']).submission_id;
-    submissions.pre_0A = id;
+    submissions.pre_17A = id;
     await inject('busy', 2);
     const started = Date.now();
     await page.click('#btn-finish');
@@ -412,23 +416,23 @@
     check('busy x2: three POSTs (2 busy + 1 success)', recs.length === 3, recs.map(r => r.json && r.json.status));
     check('busy: every retry body is byte-identical', recs.every(r => r.body === recs[0].body));
     check('busy: backoff waited ~1 s then ~2 s', elapsed >= 2800, elapsed);
-    checkBody('pre 0A', recs[0].body, {
-      ...inst, stage: 'pre', code: '0A', order: 'AB', form: 'A', background: '', answers: planAnswers(itemIds, plan)
+    checkBody('pre 17A', recs[0].body, {
+      ...inst, stage: 'pre', code: '17A', order: 'AB', form: 'A', background: '', answers: planAnswers(itemIds, plan)
     });
-    check('pre 0A: exactly one row', (await rowCount(id, 'pre')) === 1);
+    check('pre 17A: exactly one row', (await rowCount(id, 'pre')) === 1);
   });
 
   await scenario('D busy x4 -> retries exhausted -> Save not confirmed -> Try again', async () => {
     await page.goto(`${base}/?type=post`);
-    await startStage('0a');
-    const itemIds = inst.pairs.map(pair => `${pair}-B`); // 0A -> AB, post uses form B
+    await startStage('17a');
+    const itemIds = inst.pairs.map(pair => `${pair}-B`); // 17A -> AB, post uses form B
     const plan = itemIds.map(() => 'B');
     await answerAll(itemIds, inst.items, plan);
     await inject('busy', 4);
     await page.click('#btn-finish');
     await page.waitForFunction(() => (document.getElementById('save-title') || {}).textContent === 'Save not confirmed', null, { timeout: SAVE_TIMEOUT });
     const id = JSON.parse((await storage())['fa2601_v2_draft_post']).submission_id;
-    submissions.post_0A = id;
+    submissions.post_17A = id;
     check('busy x4: four POSTs then stop (1 + 3 retries)', recordsFor(id).length === 4, recordsFor(id).length);
     await sleep(1500);
     check('busy x4: no further automatic retry', recordsFor(id).length === 4);
@@ -438,7 +442,7 @@
     await page.waitForSelector('#screen-post-done.active', { timeout: SAVE_TIMEOUT });
     check('busy x4: Try again saved', ((await page.textContent('#btn-submit')) || '').trim() === 'Submitted!');
     check('busy x4: all bodies identical', recordsFor(id).every(r => r.body === recordsFor(id)[0].body));
-    check('post 0A: exactly one row', (await rowCount(id, 'post')) === 1);
+    check('post 17A: exactly one row', (await rowCount(id, 'post')) === 1);
   });
 
   await scenario('E no leave-study control on any screen', async () => {
@@ -450,7 +454,7 @@
       && !((await page.textContent('body')) || '').includes('Leave Research Study'));
     await noLeave('assent');
     await agree();
-    await startStage('7A');
+    await startStage('10A');
     await noLeave('question');
     const n = inst.pairs.length;
     for (let i = 0; i < n; i++) await page.click('#btn-skip');
