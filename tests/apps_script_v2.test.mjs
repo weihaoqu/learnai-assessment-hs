@@ -11,7 +11,7 @@ import {
   createFakeGas, seedLegacy, legacyHashes, sha256Hex, SCRIPT_PATH, ROOT, LEGACY_TABS, V2_TABS,
 } from './fake_gas.mjs';
 
-const ASSENT_VERSION = 'FA2601-Assent-2026-08-21';
+const ASSENT_VERSION = 'FA2601-Assent-2026-10-22';
 const SOURCE = fs.readFileSync(SCRIPT_PATH, 'utf8');
 
 // Copied verbatim from docs/V2_CONTRACT.md, so the script is checked against the contract.
@@ -410,6 +410,7 @@ describe('validation rejections (one test each; no spreadsheet or lock call)', (
     }]],
     ['bad_schema', 'bad_schema', [body({ schema: 'fa2601-v1' }), body({ schema: 2 }), body({ schema: null })]],
     ['bad_assent_version', 'bad_assent_version', [body({ assent_version: 'FA2601-Assent-2026-01-01' }), without('assent_version')]],
+    ['previous assent version', 'bad_assent_version', [body({ assent_version: 'FA2601-Assent-2026-08-21' })]],
     ['bad_stage', 'bad_stage', [body({ stage: 'mid' }), body({ stage: 'PRE' }), without('stage')]],
     ['bad_participant_id', 'bad_participant_id', ['101A', '00A', '-1A', 'A1', '57', '57RR', '5 7R', '', 57, null]
       .map((participant_id) => Object.assign(body(), { participant_id }))],

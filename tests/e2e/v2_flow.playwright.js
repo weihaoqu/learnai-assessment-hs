@@ -205,7 +205,7 @@
     check(`${label}: exactly the contract fields`, JSON.stringify(Object.keys(parsed).sort()) === JSON.stringify(CONTRACT_FIELDS),
       Object.keys(parsed).sort());
     check(`${label}: schema/assent/version`, parsed.schema === 'fa2601-v2' && parsed.assent === 'yes'
-      && parsed.assent_version === 'FA2601-Assent-2026-08-21'
+      && parsed.assent_version === 'FA2601-Assent-2026-10-22'
       && parsed.instrument_version === expected.instrument_version && parsed.bank_sha256 === expected.bank_sha256
       && parsed.selection === expected.selection);
     check(`${label}: stage/code/order/form`, parsed.stage === expected.stage && parsed.participant_id === expected.code
@@ -305,7 +305,7 @@
     check('pre saved: #screen-pre-done.active and body[data-fa2601-saved=pre]', true);
     const store = await storage();
     check('pre draft cleared after confirmed save', !('fa2601_v2_draft_pre' in store));
-    check('assent flag unchanged', store['fa2601_assent_FA2601-Assent-2026-08-21'] === 'yes');
+    check('assent flag unchanged', store['fa2601_assent_FA2601-Assent-2026-10-22'] === 'yes');
     await noScoreText('pre done');
     await noStatusButtonYet('pre done');
 
@@ -572,6 +572,7 @@
     await agree();
     await page.waitForSelector('#screen-welcome.active', { timeout: 10000 });
     const current = await page.evaluate(() => ({
+      assent_version: 'FA2601-Assent-2026-10-22',
       instrument_version: window.FA2601_ITEMS.instrument_version,
       bank_sha256: window.FA2601_ITEMS.bank_sha256,
       selection: window.FA2601_CONFIG.selection,
